@@ -746,8 +746,8 @@ class wuziqi:
                     row_min = max(row - 2, 0)
                     col_min = max(col - 2, 0)
 
-                    for r in range(row_min, row_max + 1):
-                        for c in range(col_min, col_max + 1):
+                    for r in range(row_min, row_max + 2):
+                        for c in range(col_min, col_max + 2):
                             if self.board[r][c] == 0 and (r, c) not in nearby_row_col:
                                 nearby_row_col.append((r, c))
         return nearby_row_col
@@ -1240,8 +1240,8 @@ class wuziqi:
 
         # computer move
         #move_row, move_col = self.get_move_wiki()
-        move_row, move_col = self.get_move_greedy()
-        #move_row, move_col = self.get_move_greedy2()
+        #move_row, move_col = self.get_move_greedy()
+        move_row, move_col = self.get_move_greedy2()
         # print("computer move: %d %d" %(move_row, move_col))
         # computer
         self.board[move_row][move_col] = self.computer_color
