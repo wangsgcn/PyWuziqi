@@ -20,13 +20,12 @@ class board_xy:
         self.ncol = ncol
         self.board_width = board_width
         self.board_height = board_height
-        self.x_margin = x_margin
-        self.y_margin = y_margin
         self.X = [[0 for i in range(self.ncol)] for j in range(self.nrow)]
         self.Y = [[0 for i in range(self.ncol)] for j in range(self.nrow)]
-        self.x_interval = (self.board_width - 2 * self.x_margin) // (ncol - 1)
-        self.y_interval = (self.board_height - 2 * self.y_margin) // (nrow - 1)
-
+        self.x_interval = (board_width  - 2 * x_margin) // (ncol - 1)
+        self.y_interval = (board_height - 2 * y_margin) // (nrow - 1)
+        self.x_margin = (self.board_width  - self.x_interval * (ncol-1)) // 2
+        self.y_margin = (self.board_height - self.y_interval * (nrow-1)) // 2
         x0 = x_margin
         y0 = y_margin
 
@@ -117,8 +116,10 @@ class wuziqi:
         self.ncol = ncol
         self.board_width = board_width
         self.board_height = board_height
-        self.x_margin = x_margin
-        self.y_margin = y_margin
+        self.x_interval = (board_width-2*x_margin)//(ncol-1)
+        self.y_interval = (board_width-2*y_margin)//(nrow-1)
+        self.x_margin = (board_width-self.x_interval*(ncol-1))//2
+        self.y_margin = (board_height-self.y_interval*(nrow-1))//2
         self.end_game_flag = False
 
         pygame.init()
@@ -131,7 +132,7 @@ class wuziqi:
 
         icon_image = pygame.image.load("wuziqi.png")
         pygame.display.set_icon(icon_image)
-        # window.fill(mc.cyan)
+
         # fill the window with the pine texture background
         self.window.blit(background_image, self.rect)
         pygame.display.update()
@@ -155,21 +156,29 @@ class wuziqi:
         self.close_three_points = 20
         self.open_two_points = 2
         self.close_two_points = 1
-
+        self.player_penalty = 10.0
         # catch for the minimax search algorithm
         # key: board code
         # value: board score 
-        self.minimax_catch = {}
+        self.minimax_records = {}
         self.computer_color = 2  # white color
         self.player_color = 1  # black color
 
     def print_board(self):
+        line="    "
+        for col in range(self.ncol):
+            line += "%3d" %(col)
+        print(line)
+        line="     "
+        for col in range(self.ncol):
+            line += "---"
+        print(line)
         for row in range(self.nrow):
-            line = ""
+            line = "%02d | " %row
             for col in range(self.ncol):
-                line += str(self.board[row][col]) + " "
+                line +=  " " + str(self.board[row][col]) + " "
             print(line)
-        print("")
+        # print("")
 
     def get_xy(self, row, col):
         return self.XY.row_col_to_xy(row, col)
@@ -711,6 +720,22 @@ class wuziqi:
                                 nearby_row_col.append((r, c))
         return nearby_row_col
 
+    def nearby_moves2(self):
+        nearby_row_col = [[False for i in range(self.ncol)] for j in range(self.nrow)]
+        for row in range(self.nrow):
+            for col in range(self.ncol):
+                if self.board[row][col] > 0:
+                    row_max = min(row + 1, self.nrow)
+                    col_max = min(col + 1, self.ncol)
+                    row_min = max(row - 1, 0)
+                    col_min = max(col - 1, 0)
+
+                    for r in range(row_min, row_max + 1):
+                        for c in range(col_min, col_max + 1):
+                            nearby_row_col[r][c] = True
+
+        return nearby_row_col
+
     def board_string_code(self):
         string_code = ""
         for row in range(self.nrow):
@@ -718,7 +743,8 @@ class wuziqi:
                 string_code += str(self.board[row][col])
         return string_code
 
-    def evaluate_board_score(self):
+    def evaluate_board_score(self, maximize_computer):
+        self.print_board()
         computer_connected_five = self.count_five(self.computer_color)
         player_connected_five = self.count_five(self.player_color)
 
@@ -736,82 +762,268 @@ class wuziqi:
         computer_closed_two = self.count_closed_two(self.computer_color) - computer_open_two
         player_closed_two = self.count_closed_two(self.player_color) - player_open_two
 
-        computer_score = self.open_two_points * computer_open_two + self.close_two_points * computer_closed_two \
+        print("computer_connected_five =", computer_connected_five)
+        print("player_connected_five   =", player_connected_five)
+        print("computer_open_four      =", computer_open_four)
+        print("player_open_four        =", player_open_four)
+        print("computer_open_three     =", computer_open_three)
+        print("player_open_three       =", player_open_three)
+        print("computer_open_two       =", computer_open_two)
+        print("player_open_two         =", player_open_two)
+        print("computer_closed_four    =", computer_closed_four)
+        print("player_closed_four      =", player_closed_four)
+        print("computer_closed_three   =", computer_closed_three)
+        print("player_closed_three     =", player_closed_three)
+        print("computer_closed_two     =", computer_closed_two)
+        print("player_closed_two       =", player_closed_two)
+        #computer_score = self.open_two_points * computer_open_two + self.close_two_points * computer_closed_two \
+        #                 + self.open_three_points * computer_open_three + self.close_three_points * computer_closed_three \
+        #                 + self.open_four_points * computer_open_four + self.closed_four_points * computer_closed_four \
+        #                 + self.connected_five_points * computer_connected_five
+
+        #player_score = self.open_two_points * player_open_two + self.close_two_points * player_closed_two \
+        #               + (self.open_three_points * player_open_three + self.close_three_points * player_closed_three \
+        #                  + self.open_four_points * player_open_four + self.closed_four_points * player_closed_four \
+        #                  + self.connected_five_points * player_connected_five) * 10
+
+        if maximize_computer:
+            computer_score = 2*computer_open_two + 1*computer_closed_two +  200*computer_open_three + 20*computer_closed_three +  2000*computer_open_four +  200*computer_closed_four + 2000*computer_connected_five
+            player_score   = 2*player_open_two   + 1*player_closed_two   + 2000*player_open_three   + 20*player_closed_three   + 20000*player_open_four   + 2000*player_closed_four  + 20000*player_connected_five
+            return computer_score + player_score
+        else:
+            player_score   = 2*player_open_two + 1*player_closed_two +  200*player_open_three + 20*player_closed_three +  2000*player_open_four +  200*player_closed_four + 2000*player_connected_five
+            computer_score = 2*computer_open_two   + 1*computer_closed_two   + 2000*computer_open_three   + 20*computer_closed_three   + 20000*computer_open_four   + 2000*computer_closed_four  + 20000*computer_connected_five
+            return -1*(computer_score+player_score)
+
+    def evaluate_board_score2(self):
+        #self.print_board()
+        computer_connected_five = self.count_five(self.computer_color)
+        player_connected_five = self.count_five(self.player_color)
+
+        computer_open_four = self.count_open_four(self.computer_color)
+        player_open_four = self.count_open_four(self.player_color)
+
+        computer_open_three = self.count_open_three(self.computer_color)
+        player_open_three = self.count_open_three(self.player_color)
+
+        computer_open_two = self.count_open_two(self.computer_color)
+        player_open_two = self.count_open_two(self.player_color)
+
+        computer_closed_four = self.count_closed_four(self.computer_color) - computer_open_four
+        player_closed_four = self.count_closed_four(self.player_color) - player_open_four
+
+        computer_closed_three = self.count_closed_three(self.computer_color) - computer_open_three
+        player_closed_three = self.count_closed_three(self.player_color) - player_open_three
+
+        computer_closed_two = self.count_closed_two(self.computer_color) - computer_open_two
+        player_closed_two = self.count_closed_two(self.player_color) - player_open_two
+
+        score = 6000 * (computer_connected_five - player_connected_five)
+        + 4800 * (computer_open_four - player_open_four)
+        + 500 * (computer_closed_four - player_closed_four)
+        + 500 * (computer_open_three - player_open_three)
+        + 200 * (computer_closed_three - player_closed_three)
+        + 50 * (computer_open_two - player_open_two)
+        + 10 * (computer_closed_two - player_closed_two)
+
+        print("evaluate2 ", score, computer_open_two, player_open_two)
+        return score
+
+    def get_move_greedy(self):
+        # check the wining positions
+        computer_win_row, computer_win_col = self.winning_position(self.computer_color)
+        player_win_row, player_win_col = self.winning_position(self.player_color)
+        if (computer_win_row, computer_win_col) != (-1, -1):
+            return computer_win_row, computer_win_col
+        if (player_win_row, player_win_col) != (-1, -1):
+            return player_win_row, player_win_col
+        open_four_row, open_four_col = self.find_open_four(self.computer_color)
+        if (open_four_row, open_four_col) != (-1, -1):
+            return open_four_row, open_four_col
+
+        # greedy algorithm
+        best_score = float("-inf")
+        best_row, best_col = -1, -1
+        for row in range(self.nrow):
+            for col in range(self.ncol):
+                if self.board[row][col]==0:
+                    score = self.evaluate_board_greedy(row, col)
+                    if best_score < score:
+                        best_score = score
+                        best_row, best_col = row, col
+        return best_row, best_col
+
+    def evaluate_board_greedy(self, row, col):
+        # evaluate computer offense
+        self.board[row][col] = self.computer_color
+        computer_connected_five = self.count_five(self.computer_color)
+        computer_open_four      = self.count_open_four(self.computer_color)
+        computer_closed_four    = self.count_closed_four(self.computer_color)  - computer_open_four
+        computer_open_three     = self.count_open_three(self.computer_color)
+        computer_closed_three   = self.count_closed_three(self.computer_color) - computer_open_three
+        computer_open_two       = self.count_open_two(self.computer_color)
+        computer_closed_two     = self.count_closed_two(self.computer_color)   - computer_open_two
+        self.board[row][col] = 0
+
+        offend_score   = self.open_two_points * computer_open_two + self.close_two_points * computer_closed_two \
                          + self.open_three_points * computer_open_three + self.close_three_points * computer_closed_three \
                          + self.open_four_points * computer_open_four + self.closed_four_points * computer_closed_four \
                          + self.connected_five_points * computer_connected_five
 
-        player_score = self.open_two_points * player_open_two + self.close_two_points * player_closed_two \
-                       + self.open_three_points * player_open_three + self.close_three_points * player_closed_three \
+        # evaluate computer defense
+        self.board[row][col] = self.player_color
+        player_connected_five  = self.count_five(self.player_color)
+        player_open_four       = self.count_open_four(self.player_color)
+        player_closed_four     = self.count_closed_four(self.player_color)  - player_open_four
+        player_open_three      = self.count_open_three(self.player_color)
+        player_closed_three    = self.count_closed_three(self.player_color) - player_open_three
+        player_open_two        = self.count_open_two(self.player_color)
+        player_closed_two      = self.count_closed_two(self.player_color)   - player_open_two
+        self.board[row][col] = 0
+        defend_score = self.open_two_points * player_open_two + self.close_two_points * player_closed_two \
+                       + (self.open_three_points * player_open_three + self.close_three_points * player_closed_three \
                        + self.open_four_points * player_open_four + self.closed_four_points * player_closed_four \
-                       + self.connected_five_points * player_connected_five
+                       + self.connected_five_points * player_connected_five) * 2
+        return offend_score + defend_score
 
-        return computer_score - 10*player_score
+    def get_move_wiki(self):
+        computer_win_row, computer_win_col = self.winning_position(self.computer_color)
+        player_win_row, player_win_col = self.winning_position(self.player_color)
+        if (computer_win_row, computer_win_col) != (-1, -1):
+            return computer_win_row, computer_win_col
+        if (player_win_row, player_win_col) != (-1, -1):
+            return player_win_row, player_win_col
+        open_four_row, open_four_col = self.find_open_four(self.computer_color)
+        if (open_four_row, open_four_col) != (-1, -1):
+            return open_four_row, open_four_col
 
-    def minimax(self, current_depth, target_depth, maximize_player_flag, alpha, beta, possible_moves, computer_color):
-        # recursion function exit condition
-        if current_depth == target_depth or self.terminal_state() == -1:
+        depth = 0
+        score = float("-inf")
+        possible_moves = self.nearby_moves()
+        best_row, best_col = possible_moves[0]
+        debug_info = []
+        for move_row, move_col in possible_moves:
+            print("try (%d, %d)" %(move_row, move_col))
+            self.board[move_row][move_col] = self.computer_color
+            move_score = self.minimax_wiki(depth, True)
+            debug_info.append({"position":(move_row, move_col), "score": move_score})
+            if move_score > score:
+                score = move_score
+                best_row, best_col = move_row, move_col
+            self.board[move_row][move_col] = 0 # restore current position
+            self.minimax_records = {}  # clear catch
+        print("get_move_wiki:")
+        print(debug_info)
+        return best_row, best_col
+
+    def minimax_wiki(self, depth, maximize_computer_flag):
+        if depth==0 or self.terminal_state() != -1:
             board_code = self.board_string_code()
-            if board_code in self.minimax_catch.keys():
-                return self.minimax_catch[board_code]
+            if board_code in self.minimax_records.keys():
+                return self.minimax_records[board_code]
             else:
-                score = self.evaluate_board_score()
-                self.minimax_catch[board_code] = score
-                #self.print_board()
-                #print("score: ", score)
+                score = self.evaluate_board_score(maximize_computer_flag)
+                self.minimax_records[board_code] = score
+                print("score: ", score)
                 return score
 
-        # determine current color to be maximized
-        # current_depth = stone_count + 1
-        # Since the player places the first stone, then current_color = computer when current_depth %  2==0
-        if current_depth % 2 == 0:
-            current_color = self.computer_color
-        else:
-            current_color = self.player_color
-        print("current_depth", current_depth, "current_color", current_color)
+        possible_moves = self.nearby_moves()
+        if maximize_computer_flag:     # True, maximize computer
+            score = float("-inf")
+            debug_info = []
+            for (move_row, move_col) in possible_moves:
+                self.board[move_row][move_col] = self.player_color
+                board_code = self.board_string_code()
+                if board_code in self.minimax_records.keys():
+                    move_score = self.minimax_records[board_code]
+                else:
+                    move_score = self.minimax_wiki(depth-1, False)
+                self.board[move_row][move_col] = 0
+                debug_info.append([(move_row, move_col), move_score])
+                score = max(score, move_score)
+            print("maximize computer: ")
+            print(debug_info)
+            print("max score: ", score)
+            return score
+        else:                         # False, maximize player by minimizing the score
+            score = float("inf")
+            debug_info = []
+            for (move_row, move_col) in possible_moves:
+                self.board[move_row][move_col] = self.computer_color
+                board_code = self.board_string_code()
+                if board_code in self.minimax_records.keys():
+                    move_score = self.minimax_records[board_code]
+                else:
+                    move_score = self.minimax_wiki(depth-1, True)
+                self.board[move_row][move_col] = 0
+                debug_info.append([(move_row, move_col), move_score])
+                score = min(score, move_score)
+            print("minimize computer: ")
+            print(debug_info)
+            print("min score: ", score)
+            return score
+
+    def minimax2(self, current_depth, target_depth, maximize_player_flag, alpha, beta, possible_moves):
+        # recursion function exit condition
+        print("******")
+        print("current_depth = ", current_depth)
+        print("target_depth = ", target_depth)
+        print("maximize_player_flag = ", maximize_player_flag)
+        print("terminal_state = ", self.terminal_state())
+        self.print_possible_moves(possible_moves)
+        if current_depth == target_depth or self.terminal_state() != -1:
+            board_code = self.board_string_code()
+            if board_code in self.minimax_records.keys():
+                return self.minimax_records[board_code]
+            else:
+                score = self.evaluate_board_score()
+                self.minimax_records[board_code] = score
+                print("score: ", score)
+                return score
+
+
+        print("current_depth", current_depth)
         # maximize player score
         if maximize_player_flag:
+            print("maximize player")
             best_score = float("-inf")  # negative infinity
-            for (row, col) in possible_moves:  # key: (row, col)
-                self.board[row][col] = current_color
-                new_board_code = self.board_string_code()
-                # if the current situation is already evaluated before
-                # assign the score to new_score
-                if new_board_code in self.minimax_catch.keys():
-                    new_score = self.minimax_catch[new_board_code]
-                # current situation is not evaluated before, then
-                # evaluate it
-                else:
-                    new_moves = self.nearby_moves()
-                    new_score = self.minimax(current_depth + 1, target_depth, False, alpha, beta, new_moves,
-                                             computer_color)
-                    self.minimax_catch[new_board_code] = new_score
-                # recover the board
-                self.board[row][col] = 0
-
-                # update best score
-                best_score = max(best_score, new_score)
-                alpha = max(alpha, best_score)
-                if beta <= alpha:
-                    break
+            for row in range(self.nrow):
+                for col in range(self.ncol):
+                    if possible_moves[row][col] == True and self.board[row][col] == 0:
+                        print("minimize player by trying (%d, %d) for computer" %(row, col))
+                        self.board[row][col] = self.computer_color
+                        new_board_code = self.board_string_code()
+                        if new_board_code in self.minimax_records.keys():
+                            new_score = self.minimax_records[new_board_code]
+                        else:
+                            new_moves = self.nearby_moves2()
+                            new_score = self.minimax2(current_depth + 1, target_depth, False, alpha, beta, new_moves)
+                            self.minimax_records[new_board_code] = new_score
+                        self.board[row][col] = 0
+                        best_score = max(best_score, new_score)
+                        #alpha = max(alpha, best_score)
+                        #if beta <= alpha:
+                        #    break
             return best_score
-        # maximize computer score
         else:
-            best_score = float("inf")  # positive infinity
-            for (row, col) in possible_moves:
-                self.board[row][col] = current_color
-                new_board_code = self.board_string_code()
-                if new_board_code in self.minimax_catch.keys():
-                    new_score = self.minimax_catch[new_board_code]
-                else:
-                    new_moves = self.nearby_moves()
-                    new_score = self.minimax(current_depth + 1, target_depth, True, alpha, beta, new_moves,
-                                             computer_color)
-                self.board[row][col] = 0
-                best_score = min(best_score, new_score)
-                beta = min(beta, best_score)
-                if beta <= alpha:
-                    break
+            best_score = float("inf")
+            for row in range(self.nrow):
+                for col in range(self.ncol):
+                    if possible_moves[row][col] == True and self.board[row][col] == 0:
+                        print("maximize computer by trying (%d, %d) for player" %(row, col))
+                        self.board[row][col] = self.player_color
+                        new_board_code = self.board_string_code()
+                        if new_board_code in self.minimax_records.keys():
+                            new_score = self.minimax_records[new_board_code]
+                        else:
+                            new_moves = self.nearby_moves2()
+                            new_score = self.minimax2(current_depth + 1, target_depth, True, alpha, beta, new_moves)
+                            self.minimax_records[new_board_code] = new_score
+                        self.board[row][col] = 0
+                        best_score = min(best_score, new_score)
+                        #beta = min(beta, best_score)
+                        #if beta <= alpha:
+                        #    break
             return best_score
 
     def count_stone(self):
@@ -895,12 +1107,22 @@ class wuziqi:
                     return row - 4, col + 4
         return -1, -1
 
-    def get_move(self):
-        stone_count = self.count_stone()
-        if stone_count == 0:
-            return [int(self.nrow / 2), int(self.ncol / 2)]
-        current_depth = stone_count + 1
-        target_depth = current_depth + 3
+    def print_possible_moves(self, possible_moves):
+        print("possible moves: ")
+        for row in range(self.nrow):
+            for col in range(self.ncol):
+                if possible_moves[row][col]==True:
+                    print("(%d, %d)" %(row, col), end=" ")
+        print("")
+
+    def get_move2(self):
+        #stone_count = self.count_stone()
+        #if stone_count == 0:
+        #    return [int(self.nrow / 2), int(self.ncol / 2)]
+        #current_depth = stone_count + 1
+        #target_depth = current_depth + 1
+        current_depth = 1
+        target_depth  = 2
         computer_win_row, computer_win_col = self.winning_position(self.computer_color)
         player_win_row, player_win_col = self.winning_position(self.player_color)
         if (computer_win_row, computer_win_col) != (-1, -1):
@@ -914,50 +1136,40 @@ class wuziqi:
         score = float("-inf")  # negative infinity
         best_list = []
         best_low = float("-inf")
-
-        possible_moves = self.nearby_moves()
-        # self.show_possible_moves(possible_moves)
-
-        print("possible moves")
-        print(possible_moves)
-        #a= input("enter")
-        alpha = float("-inf")
-        beta = float("inf")
-        for (row, col) in possible_moves:
-            print("row, col", (row, col))
-
-            self.board[row][col] = self.computer_color
-            move_score = self.minimax(current_depth, target_depth, False, alpha, beta, possible_moves,
-                                      self.computer_color)
-            print("score", move_score)
-            # a = input("press enter")
-            self.board[row][col] = 0  # recover the board
-            if move_score > score:
-                score = move_score
-                position = (row, col)
-
-            if move_score > best_low:
-                if len(best_list) == 0:
-                    best_list.append([(row, col), move_score])
-                else:
-                    for n in range(len(best_list)):
-                        if move_score > best_list[n][1]:
-                            best_list.insert(n, [(row, col), move_score])
-                            break
-                    # only keep the top four positions
-                    if len(best_list) > 4:
-                        best_list = best_list[0:4]
-                best_low = best_list[-1][1]  # index 0: (row, col), index 1: score
-        # clear the catch for the minimax search
-        self.minimax_catch = {}
-
-        # choose the first candidate in the best_list
-        chosen_idx = 0  # random.randint(0, 3)
+        move_list = []
+        position = []
+        possible_moves = self.nearby_moves2()
+        # print("possible_moves", possible_moves)
+        alpha0 = float("-inf")
+        beta0 = float("inf")
+        for row in range(self.nrow):
+            for col in range(self.ncol):
+                if possible_moves[row][col] == True and self.board[row][col] == 0:
+                    self.board[row][col] = self.computer_color
+                    print("get_move2")
+                    self.print_board()
+                    new_moves = self.nearby_moves2()
+                    move_score = self.minimax2(current_depth, target_depth, False, alpha0, beta0, new_moves)
+                    self.board[row][col] = 0
+                    print("get_move2, row=%d col=%d score=%f" % (row, col, move_score))
+                    if move_score > score:
+                        score = move_score
+                        position = [row, col]
+                    if move_score > best_low:
+                        if len(best_list) == 0:
+                            best_list.append({"position": (row, col), "score": move_score})
+                        else:
+                            for n in range(len(best_list)):
+                                if move_score >= best_list[n]["score"]:
+                                    best_list.insert(n, {"position": (row, col), "score": move_score})
+                                    break
+                            # if len(best_list)>4:
+                            #    best_list = best_list[0:4]
+                        best_low = best_list[0]["score"]
+        self.minimax_records = {}
         print("best_list", best_list)
-        position = best_list[chosen_idx][0]
-
-        #self.print_board()
-        return position[0], position[1] # row, col
+        chosen = random.randint(0, len(best_list) - 1)
+        return best_list[chosen]["position"]
 
     def show_possible_moves(self, possible_moves):
         for row, col in possible_moves:
@@ -985,23 +1197,18 @@ class wuziqi:
             self.end_game_flag = True
             return
 
-        print("------------------------------")
-        # print("number of five: %d" % (self.count_five(1)))
-        # print("number of open four: %d" % (self.count_open_four(1)))
-        # print("number of four: %d" % (self.count_closed_four(1)))
-        # print("number of open three: %d" % (self.count_open_three(1)))
-        # print("number of three: %d" % (self.count_closed_three(1)))
-        # print("number of open two: %d" % (self.count_open_two(1)))
-        # print("number of two: %d" % (self.count_closed_two(1)))
-        print("current score: %f" % (self.evaluate_board_score()))
-        move_row, move_col = self.get_move()
-        print("computer move: %d %d" %(move_row, move_col))
+        # computer move
+        #move_row, move_col = self.get_move_wiki()
+        move_row, move_col = self.get_move_greedy()
+
+        # print("computer move: %d %d" %(move_row, move_col))
         # computer
         self.board[move_row][move_col] = self.computer_color
         move_x, move_y = self.get_xy(move_row, move_col)
         new_circle = Circle(color=mc.white, width=32, height=32)
         new_circle.set_position(move_x - new_circle.width // 2, move_y - new_circle.height // 2)
         self.button_group.add(new_circle)
+        pygame.display.update()
 
         if self.terminal_state() == self.computer_color:
             pygame.display.set_caption(u"五子棋（Gomoku）: computer win!")
@@ -1010,35 +1217,41 @@ class wuziqi:
     def good_for_button(self, mouse_x=None, mouse_y=None):
         x, y = self.XY.get_xy(mouse_x=mouse_x, mouse_y=mouse_y, button_radius=16)
         r, c = self.XY.get_row_col(x, y)
-        if (x == -1 and y == -1) or self.board[r][c] == 1:
+        if (x == -1 and y == -1) or self.board[r][c] == 1 or self.board[r][c] == 2:
             return False
         else:
             return True
 
+    #def draw_board(self, x_margin=100, y_margin=100, nrow=15, ncol=15):
     def draw_board(self, x_margin=100, y_margin=100, nrow=15, ncol=15):
         x0, y0, x1, y1 = self.window.get_rect()
-        width0 = x1 - 2 * x_margin
-        height0 = y1 - 2 * y_margin
-        x_interval = width0 // (ncol - 1)
-        y_interval = height0 // (nrow - 1)
-
-        width = x_interval * (ncol - 1)
-        height = y_interval * (ncol - 1) + 3
+        width  = self.x_interval * (ncol - 1)
+        height = self.y_interval * (ncol - 1) + 3
 
         # print(x_interval, y_interval, width, height)
         board_group = pygame.sprite.Group()
+        pygame.font.init()
+        myfont = pygame.font.SysFont('Helvetica', 20)
 
         for row in range(0, nrow):
-            x = x_margin
-            y = y_margin + row * y_interval
-            a_hline = hline(width=width, x=x, y=y - 1)
-            board_group.add(a_hline)
+            x = self.x_margin
+            y = self.y_margin + row * self.y_interval
+            new_hline = hline(width=width, x=x, y=y - 1)
+            board_group.add(new_hline)
+            # draw label
+            label = myfont.render("%2d"%row, False, (0, 0, 255))
+            self.window.blit(label, (x-30, y-10))
+            self.window.blit(label, (x+width+10, y-10))
 
         for col in range(0, ncol):
-            x = x_margin + col * x_interval
-            y = y_margin
-            a_vline = vline(height=height, x=x - 1, y=y - 1)
-            board_group.add(a_vline)
+            x = self.x_margin + col * self.x_interval
+            y = self.y_margin
+            new_vline = vline(height=height, x=x - 1, y=y - 1)
+            board_group.add(new_vline)
+            # draw label
+            label = myfont.render("%2d"%col, False, (0, 0, 255))
+            self.window.blit(label, (x-10, y-30))
+            self.window.blit(label, (x-10, y+height+10))
 
         board_group.draw(self.window)
         pygame.display.update()
