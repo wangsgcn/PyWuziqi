@@ -4,8 +4,6 @@ Spyder Editor
 
 This is a temporary script file.
 """
-
-import time
 import math
 import pygame
 import pygame.gfxdraw
@@ -735,6 +733,22 @@ class wuziqi:
                             nearby_row_col[r][c] = True
 
         return nearby_row_col
+    
+    def nearby_moves_greedy(self):
+        nearby_row_col = []
+        for row in range(self.nrow):
+            for col in range(self.ncol):
+                if self.board[row][col] > 0:
+                    row_max = min(row + 2, self.nrow)
+                    col_max = min(col + 2, self.ncol)
+                    row_min = max(row - 2, 0)
+                    col_min = max(col - 2, 0)
+
+                    for r in range(row_min, row_max + 1):
+                        for c in range(col_min, col_max + 1):
+                            if self.board[r][c] == 0 and (r, c) not in nearby_row_col:
+                                nearby_row_col.append((r, c))
+        return nearby_row_col
 
     def board_string_code(self):
         string_code = ""
@@ -852,7 +866,32 @@ class wuziqi:
                         best_score = score
                         best_row, best_col = row, col
         return best_row, best_col
+    
+    def get_move_greedy2(self):
+        # check the wining positions
+        computer_win_row, computer_win_col = self.winning_position(self.computer_color)
+        player_win_row, player_win_col = self.winning_position(self.player_color)
+        if (computer_win_row, computer_win_col) != (-1, -1):
+            return computer_win_row, computer_win_col
+        if (player_win_row, player_win_col) != (-1, -1):
+            return player_win_row, player_win_col
+        open_four_row, open_four_col = self.find_open_four(self.computer_color)
+        if (open_four_row, open_four_col) != (-1, -1):
+            return open_four_row, open_four_col
 
+        # greedy algorithm
+        best_score = float("-inf")
+        best_row, best_col = -1, -1
+        
+        possible_moves = self.nearby_moves_greedy()
+        print(possible_moves)
+        for (row, col) in possible_moves:
+            score = self.evaluate_board_greedy(row, col)
+            if best_score < score:
+                best_score = score
+                best_row, best_col = row, col
+        return best_row, best_col
+    
     def evaluate_board_greedy(self, row, col):
         # evaluate computer offense
         self.board[row][col] = self.computer_color
@@ -1199,8 +1238,8 @@ class wuziqi:
 
         # computer move
         #move_row, move_col = self.get_move_wiki()
-        move_row, move_col = self.get_move_greedy()
-
+        #move_row, move_col = self.get_move_greedy()
+        move_row, move_col = self.get_move_greedy2()
         # print("computer move: %d %d" %(move_row, move_col))
         # computer
         self.board[move_row][move_col] = self.computer_color
