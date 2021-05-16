@@ -162,6 +162,8 @@ class wuziqi:
         self.computer_color = 2  # white color
         self.player_color = 1  # black color
 
+        # Winner's five
+        self.winner_five = []
     def print_board(self):
         line="    "
         for col in range(self.ncol):
@@ -884,7 +886,7 @@ class wuziqi:
         best_row, best_col = -1, -1
         
         possible_moves = self.nearby_moves_greedy()
-        print(possible_moves)
+        
         for (row, col) in possible_moves:
             score = self.evaluate_board_greedy(row, col)
             if best_score < score:
@@ -1238,8 +1240,8 @@ class wuziqi:
 
         # computer move
         #move_row, move_col = self.get_move_wiki()
-        #move_row, move_col = self.get_move_greedy()
-        move_row, move_col = self.get_move_greedy2()
+        move_row, move_col = self.get_move_greedy()
+        #move_row, move_col = self.get_move_greedy2()
         # print("computer move: %d %d" %(move_row, move_col))
         # computer
         self.board[move_row][move_col] = self.computer_color
