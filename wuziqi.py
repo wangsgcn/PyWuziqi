@@ -4,6 +4,8 @@ Spyder Editor
 
 This is a temporary script file.
 """
+
+import time
 import math
 import pygame
 import pygame.gfxdraw
@@ -119,6 +121,7 @@ class wuziqi:
         self.x_margin = (board_width-self.x_interval*(ncol-1))//2
         self.y_margin = (board_height-self.y_interval*(nrow-1))//2
         self.end_game_flag = False
+        self.clock = pygame.time.Clock()
 
         pygame.init()
         window_size = (board_width, board_height)
@@ -162,8 +165,9 @@ class wuziqi:
         self.computer_color = 2  # white color
         self.player_color = 1  # black color
 
-        # Winner's five
-        self.winner_five = []
+    def clock_tick(self, frame_per_second=60):
+        self.clock.tick(frame_per_second)
+
     def print_board(self):
         line="    "
         for col in range(self.ncol):
@@ -735,22 +739,6 @@ class wuziqi:
                             nearby_row_col[r][c] = True
 
         return nearby_row_col
-    
-    def nearby_moves_greedy(self):
-        nearby_row_col = []
-        for row in range(self.nrow):
-            for col in range(self.ncol):
-                if self.board[row][col] > 0:
-                    row_max = min(row + 2, self.nrow)
-                    col_max = min(col + 2, self.ncol)
-                    row_min = max(row - 2, 0)
-                    col_min = max(col - 2, 0)
-
-                    for r in range(row_min, row_max + 2):
-                        for c in range(col_min, col_max + 2):
-                            if self.board[r][c] == 0 and (r, c) not in nearby_row_col:
-                                nearby_row_col.append((r, c))
-        return nearby_row_col
 
     def board_string_code(self):
         string_code = ""
@@ -868,32 +856,7 @@ class wuziqi:
                         best_score = score
                         best_row, best_col = row, col
         return best_row, best_col
-    
-    def get_move_greedy2(self):
-        # check the wining positions
-        computer_win_row, computer_win_col = self.winning_position(self.computer_color)
-        player_win_row, player_win_col = self.winning_position(self.player_color)
-        if (computer_win_row, computer_win_col) != (-1, -1):
-            return computer_win_row, computer_win_col
-        if (player_win_row, player_win_col) != (-1, -1):
-            return player_win_row, player_win_col
-        open_four_row, open_four_col = self.find_open_four(self.computer_color)
-        if (open_four_row, open_four_col) != (-1, -1):
-            return open_four_row, open_four_col
 
-        # greedy algorithm
-        best_score = float("-inf")
-        best_row, best_col = -1, -1
-        
-        possible_moves = self.nearby_moves_greedy()
-        
-        for (row, col) in possible_moves:
-            score = self.evaluate_board_greedy(row, col)
-            if best_score < score:
-                best_score = score
-                best_row, best_col = row, col
-        return best_row, best_col
-    
     def evaluate_board_greedy(self, row, col):
         # evaluate computer offense
         self.board[row][col] = self.computer_color
@@ -904,11 +867,13 @@ class wuziqi:
         computer_closed_three   = self.count_closed_three(self.computer_color) - computer_open_three
         computer_open_two       = self.count_open_two(self.computer_color)
         computer_closed_two     = self.count_closed_two(self.computer_color)   - computer_open_two
+        computer_double_three   = self.count_double_three(self.computer_color)
         self.board[row][col] = 0
 
         offend_score   = self.open_two_points * computer_open_two + self.close_two_points * computer_closed_two \
                          + self.open_three_points * computer_open_three + self.close_three_points * computer_closed_three \
                          + self.open_four_points * computer_open_four + self.closed_four_points * computer_closed_four \
+                         + self.open_four_points * computer_double_three \
                          + self.connected_five_points * computer_connected_five
 
         # evaluate computer defense
@@ -920,11 +885,12 @@ class wuziqi:
         player_closed_three    = self.count_closed_three(self.player_color) - player_open_three
         player_open_two        = self.count_open_two(self.player_color)
         player_closed_two      = self.count_closed_two(self.player_color)   - player_open_two
+        player_double_three    = self.count_double_three(self.player_color)
         self.board[row][col] = 0
         defend_score = self.open_two_points * player_open_two + self.close_two_points * player_closed_two \
                        + (self.open_three_points * player_open_three + self.close_three_points * player_closed_three \
                        + self.open_four_points * player_open_four + self.closed_four_points * player_closed_four \
-                       + self.connected_five_points * player_connected_five) * 2
+                       + self.connected_five_points * player_connected_five + self.open_four_points*player_double_three) * 2
         return offend_score + defend_score
 
     def get_move_wiki(self):
@@ -1148,6 +1114,185 @@ class wuziqi:
                     return row - 4, col + 4
         return -1, -1
 
+    def count_double_three(self, color_id):
+        count = 0
+        for row in range(self.nrow):
+            for col in range(self.ncol):
+                # (1)
+                # ? 0 ? ? ?
+                # ? * ? ? ?
+                # ? * ? ? ?
+                # 0 x * * 0
+                # ? 0 ? ? ?
+                if self.in_board(row, col-1) \
+                        and self.in_board(row, col+3) \
+                        and self.in_board(row+1, col) \
+                        and self.in_board(row-3, col) \
+                        and self.board[row][col-1] == 0 \
+                        and self.board[row][col  ] == color_id \
+                        and self.board[row][col+1] == color_id \
+                        and self.board[row][col+2] == color_id \
+                        and self.board[row][col+3] == 0 \
+                        and self.board[row+1][col] == 0 \
+                        and self.board[row  ][col] == color_id \
+                        and self.board[row-1][col] == color_id \
+                        and self.board[row-2][col] == color_id \
+                        and self.board[row-3][col] == 0:
+                    count += 1
+                # (2)
+                # ? ? ? ? 0
+                # ? ? ? * ?
+                # 0 ? * ? ?
+                # ? x ? ? ?
+                # 0 ? * ? ?
+                # ? ? ? * ?
+                # ? ? ? ? 0
+                if self.in_board(row-1, col-1) \
+                        and self.in_board(row+3, col+3) \
+                        and self.in_board(row+1, col-1) \
+                        and self.in_board(row-3, col+3) \
+                        and self.board[row-1][col-1] == 0 \
+                        and self.board[row  ][col  ] == color_id \
+                        and self.board[row+1][col+1] == color_id \
+                        and self.board[row+2][col+2] == color_id \
+                        and self.board[row+3][col+3] == 0 \
+                        and self.board[row+1][col-1] == 0 \
+                        and self.board[row  ][col  ] == color_id \
+                        and self.board[row-1][col+1] == color_id \
+                        and self.board[row-2][col+2] == color_id \
+                        and self.board[row-3][col+3] == 0:
+                    count += 1
+                # (3)
+                # ? 0 ? ? ?
+                # 0 x * * 0
+                # ? * ? ? ?
+                # ? * ? ? ?
+                # ? 0 ? ? ?
+                if self.in_board(row, col-1) \
+                        and self.in_board(row, col+3) \
+                        and self.in_board(row-1, col) \
+                        and self.in_board(row+3, col) \
+                        and self.board[row][col-1] == 0 \
+                        and self.board[row][col  ] == color_id \
+                        and self.board[row][col+1] == color_id \
+                        and self.board[row][col+2] == color_id \
+                        and self.board[row][col+3] == 0 \
+                        and self.board[row-1][col] == 0 \
+                        and self.board[row  ][col] == color_id \
+                        and self.board[row+1][col] == color_id \
+                        and self.board[row+2][col] == color_id \
+                        and self.board[row+3][col] == 0:
+                    count += 1
+                # (4)
+                # ? ? ? 0 ? 0 ? ? ?
+                # ? ? ? ? x ? ? ? ?
+                # ? ? ? * ? * ? ? ?
+                # ? ? * ? ? ? * ? ?
+                # ? 0 ? ? ? ? ? 0 ?
+                if self.in_board(row-1, col-1) \
+                        and self.in_board(row+3, col+3) \
+                        and self.in_board(row-1, col+1) \
+                        and self.in_board(row+3, col-3) \
+                        and self.board[row-1][col-1] == 0 \
+                        and self.board[row  ][col  ] == color_id \
+                        and self.board[row+1][col+1] == color_id \
+                        and self.board[row+2][col+2] == color_id \
+                        and self.board[row+3][col+3] == 0 \
+                        and self.board[row-1][col+1] == 0 \
+                        and self.board[row  ][col  ] == color_id \
+                        and self.board[row+1][col-1] == color_id \
+                        and self.board[row+2][col-2] == color_id \
+                        and self.board[row+3][col-3] == 0:
+                    count += 1
+                # (5)
+                # ? ? ? 0 ?
+                # 0 * * x 0
+                # ? ? ? * ?
+                # ? ? ? * ?
+                # ? ? ? 0 ?
+                if self.in_board(row, col+1) \
+                        and self.in_board(row, col-3) \
+                        and self.in_board(row-1, col) \
+                        and self.in_board(row+3, col) \
+                        and self.board[row][col+1] == 0 \
+                        and self.board[row][col  ] == color_id \
+                        and self.board[row][col-1] == color_id \
+                        and self.board[row][col-2] == color_id \
+                        and self.board[row][col-3] == 0 \
+                        and self.board[row-1][col] == 0 \
+                        and self.board[row  ][col] == color_id \
+                        and self.board[row+1][col] == color_id \
+                        and self.board[row+2][col] == color_id \
+                        and self.board[row+3][col] == 0:
+                    count += 1
+                #(6)
+                # 0 ? ? ? ?    (row-3, col-3)
+                # ? * ? ? ?
+                # ? ? * ? 0
+                # ? ? ? x ?    (row, col)
+                # ? ? * ? 0    (row+1, col+1)
+                # ? * ? ? ?
+                # 0 ? ? ? ?    (row+3, col-3)
+                if self.in_board(row-1, col+1) \
+                        and self.in_board(row+3, col-3) \
+                        and self.in_board(row+1, col+1) \
+                        and self.in_board(row-3, col-3) \
+                        and self.board[row-1][col+1] == 0 \
+                        and self.board[row  ][col  ] == color_id \
+                        and self.board[row+1][col-1] == color_id \
+                        and self.board[row+2][col-2] == color_id \
+                        and self.board[row+3][col-3] == 0 \
+                        and self.board[row+1][col+1] == 0 \
+                        and self.board[row  ][col  ] == color_id \
+                        and self.board[row-1][col-1] == color_id \
+                        and self.board[row-2][col-2] == color_id \
+                        and self.board[row-3][col-3] == 0:
+                    count += 1
+                # (7)
+                # ? ? ? 0 ? (row-3, col)
+                # ? ? ? * ?
+                # ? ? ? * ?
+                # 0 * * x 0 (row, col-3), (row,col), (row, col+1)
+                # ? ? ? 0 ? (row+1, col)
+                if          self.in_board(row, col+1) \
+                        and self.in_board(row, col-3) \
+                        and self.in_board(row+1, col) \
+                        and self.in_board(row-3, col) \
+                        and self.board[row][col+1] == 0 \
+                        and self.board[row][col  ] == color_id \
+                        and self.board[row][col-1] == color_id \
+                        and self.board[row][col-2] == color_id \
+                        and self.board[row][col-3] == 0 \
+                        and self.board[row+1][col] == 0 \
+                        and self.board[row  ][col] == color_id \
+                        and self.board[row-1][col] == color_id \
+                        and self.board[row-2][col] == color_id \
+                        and self.board[row-3][col] == 0:
+                    count += 1
+
+                # (8)
+                # 0 ? ? ? ? ? 0 (row-3, col-3), (row-3, col+3_
+                # ? * ? ? ? * ?
+                # ? ? * ? * ? ?
+                # ? ? ? x ? ? ?  (row, col)
+                # ? ? 0 ? 0 ? ? (row+1, col-1), (row+1, col+1)
+                if          self.in_board(row+1, col-1) \
+                        and self.in_board(row-3, col+3) \
+                        and self.in_board(row+1, col+1) \
+                        and self.in_board(row-3, col-3) \
+                        and self.board[row+1][col-1] == 0 \
+                        and self.board[row  ][col  ] == color_id \
+                        and self.board[row-1][col+1] == color_id \
+                        and self.board[row-2][col+2] == color_id \
+                        and self.board[row-3][col+3] == 0 \
+                        and self.board[row+1][col+1] == 0 \
+                        and self.board[row  ][col  ] == color_id \
+                        and self.board[row-1][col-1] == color_id \
+                        and self.board[row-2][col-2] == color_id \
+                        and self.board[row-3][col-3] == 0:
+                    count += 1
+        return count
+
     def print_possible_moves(self, possible_moves):
         print("possible moves: ")
         for row in range(self.nrow):
@@ -1231,7 +1376,10 @@ class wuziqi:
         new_circle = Circle(color=mc.black, width=32, height=32)
         new_circle.set_position(x - new_circle.width // 2, y - new_circle.height // 2)
         self.button_group.add(new_circle)
-        pygame.display.update()
+        #pygame.display.update()
+        #self.clock_tick()
+        self.display_update()
+
         self.board[r][c] = self.player_color
         if self.terminal_state() == self.player_color:
             pygame.display.set_caption(u"五子棋（Gomoku）: player win!")
@@ -1240,8 +1388,8 @@ class wuziqi:
 
         # computer move
         #move_row, move_col = self.get_move_wiki()
-        #move_row, move_col = self.get_move_greedy()
-        move_row, move_col = self.get_move_greedy2()
+        move_row, move_col = self.get_move_greedy()
+
         # print("computer move: %d %d" %(move_row, move_col))
         # computer
         self.board[move_row][move_col] = self.computer_color
@@ -1255,7 +1403,7 @@ class wuziqi:
             pygame.display.set_caption(u"五子棋（Gomoku）: computer win!")
             self.end_game_flag = True
 
-    def good_for_button(self, mouse_x=None, mouse_y=None):
+    def good_for_move(self, mouse_x=None, mouse_y=None):
         x, y = self.XY.get_xy(mouse_x=mouse_x, mouse_y=mouse_y, button_radius=16)
         r, c = self.XY.get_row_col(x, y)
         if (x == -1 and y == -1) or self.board[r][c] == 1 or self.board[r][c] == 2:
