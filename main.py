@@ -16,7 +16,7 @@ def main():
                 else:
                     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
                 # pygame.display.update()
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button==1:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button==1 and gomoku.ready_for_human_move():
                 x, y = event.pos
                 if gomoku.good_for_move(mouse_x=x, mouse_y=y):
                     gomoku.player_place_button(mouse_x=x, mouse_y=y)

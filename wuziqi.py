@@ -122,7 +122,7 @@ class wuziqi:
         self.y_margin = (board_height-self.y_interval*(nrow-1))//2
         self.end_game_flag = False
         self.clock = pygame.time.Clock()
-
+        self.ready_for_human_move_flag = True
         pygame.init()
         window_size = (board_width, board_height)
         # window = pygame.display.set_mode(window_size, pygame.RESIZABLE)
@@ -153,7 +153,7 @@ class wuziqi:
         self.connected_five_points = 20000
         self.open_four_points = 20000
         self.closed_four_points = 2000
-        self.open_three_points = 2000
+        self.open_three_points =  2000
         self.close_three_points = 20
         self.open_two_points = 2
         self.close_two_points = 1
@@ -867,13 +867,21 @@ class wuziqi:
         computer_closed_three   = self.count_closed_three(self.computer_color) - computer_open_three
         computer_open_two       = self.count_open_two(self.computer_color)
         computer_closed_two     = self.count_closed_two(self.computer_color)   - computer_open_two
-        computer_double_three   = self.count_double_three(self.computer_color)
+        # computer_double_three   = self.count_double_three(self.computer_color)
+        computer_double_three = 0
+        computer_double_four = 0
+        if computer_open_three >= 2:
+            computer_double_three = 1
+            print("row=%d, col=%d, computer double three, number of open three %d" %(row, col, computer_open_three))
+        if computer_closed_four >=2:
+            print("computer double four")
+            computer_double_four = 1
         self.board[row][col] = 0
 
         offend_score   = self.open_two_points * computer_open_two + self.close_two_points * computer_closed_two \
                          + self.open_three_points * computer_open_three + self.close_three_points * computer_closed_three \
                          + self.open_four_points * computer_open_four + self.closed_four_points * computer_closed_four \
-                         + self.open_four_points * computer_double_three \
+                         + self.open_four_points * computer_double_three + self.open_four_points * computer_double_four \
                          + self.connected_five_points * computer_connected_five
 
         # evaluate computer defense
@@ -885,12 +893,19 @@ class wuziqi:
         player_closed_three    = self.count_closed_three(self.player_color) - player_open_three
         player_open_two        = self.count_open_two(self.player_color)
         player_closed_two      = self.count_closed_two(self.player_color)   - player_open_two
-        player_double_three    = self.count_double_three(self.player_color)
+        # player_double_three    = self.count_double_three(self.player_color)
+        player_double_three = 0
+        player_double_four = 0
+        if player_open_three >= 2:
+            player_double_three = 1
+        if player_closed_four == 2:
+            player_double_four =1
         self.board[row][col] = 0
         defend_score = self.open_two_points * player_open_two + self.close_two_points * player_closed_two \
                        + (self.open_three_points * player_open_three + self.close_three_points * player_closed_three \
                        + self.open_four_points * player_open_four + self.closed_four_points * player_closed_four \
-                       + self.connected_five_points * player_connected_five + self.open_four_points*player_double_three) * 2
+                       + self.connected_five_points * player_connected_five + self.open_four_points*player_double_three\
+                       + self.open_four_points*player_double_four) * 2
         return offend_score + defend_score
 
     def get_move_wiki(self):
@@ -1291,7 +1306,132 @@ class wuziqi:
                         and self.board[row-2][col-2] == color_id \
                         and self.board[row-3][col-3] == 0:
                     count += 1
+
+                # (9)
+                # ? ? 0 ? ?   (row-2, col)
+                # ? ? * ? ?
+                # 0 * x * 0   (row, col-2), (row, col), (row, col+2)
+                # ? ? * ? ?
+                # ? ? 0 ? ?   (row+2, col)
+                if self.inside([(row-2, col), (row+2, col), (row, col-2), (row, col+2)]) \
+                        and self.check_pattern([(row-2,col), (row-1,col), (row,col), (row+1,col), (row+2,col)], [0,color_id,color_id,color_id,0]) \
+                        and self.check_pattern([(row,col-2), (row,col-1), (row,col), (row,col+1), (row,col+2)], [0,color_id,color_id,color_id,0]):
+                    count += 1
+
+                # (10)
+                # 0 ? ? ? 0    (row-2, col-2), (row-2, col+2)
+                # ? * ? * ?
+                # ? ? x ? ?    (row, col)
+                # ? * ? * ?
+                # 0 ? ? ? 0    (row+2, col-2), (row+2, col+2)
+                if self.inside([(row-2, col-2), (row-2, col+2), (row+2, col-2), (row+2, col+2)]) \
+                    and self.check_pattern([(row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2)], [0,color_id,color_id,color_id,0]) \
+                    and self.check_pattern([(row+2,col-2), (row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2)], [0,color_id,color_id,color_id,0]):
+                    count += 1
+
+                # (11)
+                # ? ? ? ? 0 ?   (row-1, col+1)
+                # ? 0 * x * 0   (row, col-2), (row,col), (row, col+2)
+                # ? ? * ? ? ?
+                # ? * ? ? ? ?
+                # 0 ? ? ? ? ?   (row+3,col-3)
+                if self.inside([(row-1,col+1), (row,col+2), (row+3,col-3)]) \
+                    and self.check_pattern([(row+3,col-3),(row+2,col-2),(row+1,col-1),(row,col),(row-1,col+1)], [0,color_id,color_id,color_id,0]) \
+                    and self.check_pattern([(row,col-2),(row,col-1),(row,col),(row,col+1),(row,col+2)], [0,color_id,color_id,color_id,0]):
+                    count += 1
+
+                # (12)
+                # ? 0 ? ? ? ?    (row-2,col-2)
+                # ? ? * ? ? ?
+                # 0 * * x 0 ?    (row, col-3) (row,col) (row, col+1)
+                # ? ? ? ? * ?
+                # ? ? ? ? ? 0    (row+2, col+2)
+                if self.inside([(row-2,col-2), (row+2,col+2), (row,col-3)]) \
+                    and self.check_pattern([(row,col-3), (row,col-2), (row,col-1), (row,col), (row,col+1)], [0, color_id, color_id, color_id, 0]) \
+                    and self.check_pattern([(row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2)], [0, color_id, color_id, color_id, 0]):
+                    count += 1
+                # (13)
+                # 0 ? ? ? ?     (row-3, col-3)
+                # ? * ? 0 ?     (row-2,col)
+                # ? ? * * ?
+                # ? ? ? x ?     (row, col)
+                # ? ? ? * 0     (row+1, col+1)
+                # ? ? ? 0 ?     (row+2, col)
+                #    and self.check_pattern([(), (), (), (), ()], [0, color_id, color_id, color_id, 0])
+                if self.inside([(row-3,col-3), (row+1,col+1), (row+2,col)]) \
+                    and self.check_pattern([(row-3,col-3), (row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1)], [0, color_id, color_id, color_id, 0])\
+                    and self.check_pattern([(row-2,col), (row-1,col), (row,col), (row+1,col), (row+2,col)], [0, color_id, color_id, color_id, 0]):
+                    count += 1
+
+                # (14)
+                # ? ? 0 ? ?    (row-3, col)
+                # ? ? * ? 0    (row-2,col+2)
+                # ? ? * * ?
+                # ? ? x ? ?    (row, col)
+                # ? * 0 ? ?
+                # 0 ? ? ? ?    (row+2, col-2)
+                if self.inside([(row-3,col), (row-2,col+2), (row+2,col-2)]) \
+                    and self.check_pattern([(row+2,col-2), (row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2)], [0, color_id, color_id, color_id, 0])\
+                    and self.check_pattern([(row-3,col), (row-2,col), (row-1,col), (row,col), (row+1,col)], [0, color_id, color_id, color_id, 0]):
+                    count += 1
+                # (15)
+                # ? ? ? ? ? 0  (row-3,col+3)
+                # ? ? ? ? * ?
+                # ? ? ? * ? ?
+                # 0 * x * 0 ?   (row, col-2) (row,col)
+                # ? 0 ? ? ? ?   (row+1, col-1)
+                if self.inside([(row+1,col-1), (row,col-2), (row-3,col+3)]) \
+                    and self.check_pattern([(row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2), (row-3,col+3)], [0, color_id, color_id, color_id, 0]) \
+                    and self.check_pattern([(row,col-2), (row,col-1), (row,col), (row,col+1), (row,col+2)], [0, color_id, color_id, color_id, 0]):
+                    count += 1
+                # (16)
+                # 0 ? ? ? ? ?    (row-2,col-2)
+                # ? * ? ? ? ?
+                # ? 0 x * * 0    (row,col), (row, col+3)
+                # ? ? ? * ? ?
+                # ? ? ? ? 0 ?    (row+2,col+2)
+                if self.inside([(row-2,col-2), (row,col+3), (row+2,col+2)]) \
+                    and self.check_pattern([(row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2)], [0, color_id, color_id, color_id, 0]) \
+                    and self.check_pattern([(row,col-1), (row,col), (row,col+1), (row,col+2), (row,col+3)], [0, color_id, color_id, color_id, 0]):
+                    count += 1
+
+                # (17)
+                # ? 0 ? ? ? (row-2,col)
+                # 0 * ? ? ?  (row-1,col-1)
+                # ? x ? ? ? (row,col)
+                # ? * * ? ?
+                # ? 0 ? * ?
+                # ? ? ? ? 0 (row+3,col+3)
+                if self.inside([(row-2,col), (row-1,col-1), (row+3,col+3)])\
+                    and self.check_pattern([(row-2,col), (row-1,col), (row,col), (row+1,col), (row+2,col)], [0, color_id, color_id, color_id, 0])\
+                    and self.check_pattern([(row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2), (row+3,col+3)], [0, color_id, color_id, color_id, 0]):
+                    count += 1
+                # (18)
+                # ? ? ? ? 0 ?    (row-2, col+2)
+                # ? ? 0 * ? ?
+                # ? ? x ? ? ?    (row, col)
+                # ? * * ? ? ?
+                # 0 ? * ? ? ?    (row+2, col-2)
+                # ? ? 0 ? ? ?    (row+3,col)
+                if self.inside([(row-2,col+2), (row+2,col-2), (row+3,col)]) \
+                    and self.check_pattern([(row+2,col-2), (row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2)], [0, color_id, color_id, color_id, 0]) \
+                    and self.check_pattern([(row-1,col), (row,col), (row+1,col), (row+2,col), (row+3,col)], [0, color_id, color_id, color_id, 0]):
+                    count += 1
         return count
+
+    def check_pattern(self, stone_row_col_list, pattern):
+        result = True
+        for k in range(len(stone_row_col_list)):
+            row, col = stone_row_col_list[k]
+            result = result and (self.board[row][col] == pattern[k])
+        return result
+
+    def inside(self, stones):
+        for row, col in stones:
+            if not ((0 <= row < self.nrow) and (0 <= col < self.ncol)):
+                return False
+        return True
+
 
     def print_possible_moves(self, possible_moves):
         print("possible moves: ")
@@ -1386,10 +1526,14 @@ class wuziqi:
             self.end_game_flag = True
             return
 
+        # set flag
+        self.ready_for_human_move_flag = False
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_WAIT)
         # computer move
         #move_row, move_col = self.get_move_wiki()
         move_row, move_col = self.get_move_greedy()
-
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW )
+        self.ready_for_human_move_flag = True
         # print("computer move: %d %d" %(move_row, move_col))
         # computer
         self.board[move_row][move_col] = self.computer_color
@@ -1402,6 +1546,9 @@ class wuziqi:
         if self.terminal_state() == self.computer_color:
             pygame.display.set_caption(u"五子棋（Gomoku）: computer win!")
             self.end_game_flag = True
+
+    def ready_for_human_move(self):
+        return self.ready_for_human_move_flag
 
     def good_for_move(self, mouse_x=None, mouse_y=None):
         x, y = self.XY.get_xy(mouse_x=mouse_x, mouse_y=mouse_y, button_radius=16)
