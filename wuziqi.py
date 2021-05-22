@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Spyder Editor
-
-This is a temporary script file.
-"""
+# Developer Shugong Wang (wangsgcn@gmail.com)
 
 import time
 import math
