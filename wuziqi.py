@@ -118,6 +118,9 @@ class wuziqi:
         self.end_game_flag = False
         self.clock = pygame.time.Clock()
         self.ready_for_human_move_flag = True
+        self.opp_color = {1:2, 2:1} # dictionary for opponent color id
+
+
         pygame.init()
         window_size = (board_width, board_height)
         # window = pygame.display.set_mode(window_size, pygame.RESIZABLE)
@@ -147,6 +150,7 @@ class wuziqi:
         # scores for different situations
         self.connected_five_points = 20000
         self.open_four_points = 20000
+        self.double_three_points = 10000
         self.closed_four_points = 2000
         self.open_three_points =  2000
         self.close_three_points = 20
@@ -188,6 +192,29 @@ class wuziqi:
         else:
             return False
 
+    def count_five_greedy(self, color_id):
+        a = color_id
+        count = 0
+        #  a a a a a
+        #  -          (-) represent the current point to check
+        for r in range(self.nrow):
+            for c in range(self.ncol):
+                if self.board[r][c] != a:
+                    continue
+                # horizontal direction
+                if self.inside([(r,c+4)]) and self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4)],[a,a,a,a,a]):
+                    count += 1
+                # vertical direction
+                if self.inside([(r+4,c)]) and self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c)], [a,a,a,a,a]):
+                    count += 1
+                # upper right diagonal direction
+                if self.inside([(r-4,c+4)]) and self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4)], [a,a,a,a,a]):
+                    count += 1
+                # lower right diagonal direction
+                if self.inside([(r+4,c+4)]) and self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4)], [a,a,a,a,a]):
+                    count +=1
+        return count
+
     def count_five(self, color_id):
         count = 0
         for row in range(self.nrow):
@@ -221,6 +248,30 @@ class wuziqi:
                         and self.board[row - 4][col + 4] == color_id:
                     count = count + 1
         return count
+
+    def count_open_four_greedy(self, color_id):
+        a = color_id
+        count = 0
+        # 0 a a a a 0
+        for r in range(self.nrow):
+            for c in range(self.ncol):
+                # if the current point is already taken by either computer or player, no need to check
+                if self.board[r][c] != 0:
+                    continue
+                # horizontal direction
+                if self.inside([(r,c+4)]) and self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4)],[0,a,a,a,a,0]):
+                    count += 1
+                # vertical direction
+                if self.inside([(r+4,c)]) and self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c)], [0,a,a,a,a,0]):
+                    count += 1
+                # upper right diagonal direction
+                if self.inside([(r-4,c+4)]) and self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4)], [0,a,a,a,a,0]):
+                    count += 1
+                # lower right diagonal direction
+                if self.inside([(r+4,c+4)]) and self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4)], [0,a,a,a,a,0]):
+                    count += 1
+        return count
+
 
     def count_open_four(self, color_id):  # color_id: 0 -> unoccupied, 1 -> black, 2 -> white
         count = 0
@@ -269,6 +320,35 @@ class wuziqi:
                         and self.board[row - 4][col + 4] == color_id \
                         and self.board[row - 5][col + 5] == 0:
                     count = count + 1
+        return count
+
+    def count_closed_four_greedy(self, color_id):
+        a = color_id             # current color to check
+        b = self.opp_color[a]    # opponent color
+        count = 0
+        #0 a a a a b
+        #b a a a a 0
+        for r in range(self.nrow):
+            for c in range(self.ncol):
+                # if the current point is taken by color a, then continue. The algorithm only checks 0 or b for possible closed four.
+                if self.board[r][c]==a:
+                    continue
+                # horizontal direction
+                if self.inside([(r,c+5)]) and (self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4),(r,c+5)], [0,a,a,a,a,b])\
+                                            or self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4),(r,c+5)], [b,a,a,a,a,0])):
+                    count += 1
+                # vertical direction
+                if self.inside([(r+5,c)]) and (self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c),(r+5,c)], [0,a,a,a,a,b]) \
+                                            or self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c),(r+5,c)], [b,a,a,a,a,0])):
+                    count += 1
+                # upper right diagonal direction
+                if self.inside([(r-5,c+5)]) and (self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4),(r-5,c+5)], [0,a,a,a,a,b]) \
+                                              or self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4),(r-5,c+5)], [b,a,a,a,a,0])):
+                    count += 1
+                # lower right diagonal direction
+                if self.inside([(r+5,c+5)]) and (self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4),(r+5,c+5)],[0,a,a,a,a,b]) \
+                                              or self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4),(r+5,c+5)],[b,a,a,a,a,0])):
+                    count += 1
         return count
 
     def count_closed_four(self, color_id):
@@ -332,6 +412,27 @@ class wuziqi:
                             and self.board[row - 4][col + 4] == 0):
                     count = count + 1
         return count
+
+    def count_open_three_greedy(self, color_id):
+        count = 0
+        a = color_id # current cor to check
+        for r in range(self.nrow):
+            for c in range(self.ncol):
+                # 0 * * * 0 (r, c), (r, c+4)
+                if self.inside([(r,c+4)]) and self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4)], [0,a,a,a,0]):
+                    count += 1
+                # column, (r, c) -> (r+4, c)
+                if self.inside([(r+4,c)]) and self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c)], [0,a,a,a,0]):
+                    count += 1
+                # upper right diagonal (r, c) -> (r-4,c+4)
+                if self.inside([(r-4,c+4)]) and self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4)], [0,a,a,a,0]):
+                    count += 1
+                # lower right diagonal (r, c) => (r+4, c+4)
+                if self.inside([(r+4,c+4)]) and self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4)], [0,a,a,a,0]):
+                    count += 1
+        return count
+
+
 
     def count_open_three(self, color_id):
         count = 0
@@ -408,6 +509,35 @@ class wuziqi:
                             and self.board[row - 4][col + 4] == 0 \
                             and self.board[row - 5][col + 5] == 0):
                     count = count + 1
+        return count
+
+    def count_closed_three_greedy(self, color_id):
+        a = color_id
+        b = self.opp_color[a]
+        count = 0
+        # b a a a 0 0
+        # 0 0 a a a b
+        # -           (-) current point
+        for r in range(self.nrow):
+            for c in range(self.ncol):
+                if self.board[r][c] == a:
+                    continue
+                # horizontal direction
+                if self.inside([(r,c+4)]) and (self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4)], [b,a,a,a,0,0])\
+                                            or self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4)], [0,0,a,a,a,b])):
+                    count += 1
+                # vertical direction
+                if self.inside([(r+4,c)]) and (self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c)], [b,a,a,a,0,0])\
+                                            or self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c)], [0,0,a,a,a,b])):
+                    count += 1
+                # upper right diagonal direction
+                if self.inside([(r-4,c+4)]) and (self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4)], [b,a,a,a,0,0])\
+                                             or self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4)], [0,0,a,a,a,b])):
+                    count += 1
+                # lower right diagonal direction
+                if self.inside([(r+4,c+4)]) and (self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4)], [b,a,a,a,0,0])\
+                                              or self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4)], [0,0,a,a,a,b])):
+                    count += 1
         return count
 
     def count_closed_three(self, color_id):
@@ -518,6 +648,64 @@ class wuziqi:
                         and self.board[row - 6][col + 6] == 0 \
                         and self.board[row - 7][col + 7] == 0:
                     count = count + 1
+        return count
+
+    def count_closed_two_greedy(self, color_id):
+        a = color_id
+        b = self.opp_color[a]
+        count = 0
+        # closed cases
+        # b a a 0 0 0
+        # 0 0 0 a a b
+        # -             current point to check
+        for r in range(self.nrow):
+            for c in range(self.ncol):
+                if self.board[r][c] == a:
+                    continue
+                # horizontal direction
+                if self.inside([(r,c+5)]) and (self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4),(r,c+5)], [b,a,a,0,0,0])\
+                                            or self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4),(r,c+5)], [0,0,0,a,a,b])):
+                    count += 1
+                # vertical direction
+                if self.inside([(r+5,c)]) and (self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c),(r+5,c)], [b,a,a,0,0,0])\
+                                            or self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c),(r+5,c)], [0,0,0,a,a,b])):
+                    count += 1
+                # upper right diagonal direction
+                if self.inside([(r-5,c+5)]) and (self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4),(r-5,c+5)], [b,a,a,0,0,0])\
+                                              or self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4),(r-5,c+5)], [0,0,0,a,a,b])):
+                    count += 1
+                # lower right diagonal direction
+                if self.inside([(r+5,c+5)]) and (self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4),(r+5,c+5)], [b,a,a,0,0,0])\
+                                              or self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4),(r+5,c+5)], [0,0,0,a,a,b])):
+                    count += 1
+        return count
+
+    def count_open_two_greedy(self, color_id):
+        # only two situations of open two are considered for computational efficiency
+        a = color_id
+        count = 0
+        for r in range(self.nrow):
+            for c in range(self.ncol):
+                # 0 0 a a 0
+                # 0 a a 0 0
+                if self.board[r][c] != 0:
+                    continue
+                # horizontal direction
+                if self.inside([(r,c+4)]) and (self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4)], [0,0,a,a,0]) \
+                                           or  self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4)], [0,a,a,0,0])):
+                    count += 1
+                # vertical direction
+                if self.inside([(r+4,c)]) and (self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c)], [0,0,a,a,0]) \
+                                           or  self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c)], [0,a,a,0,0])):
+                    count += 1
+                # upper right diagonal direction
+                if self.inside([(r-4,c+4)]) and (self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4)], [0,0,a,a,0]) \
+                                             or self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4)], [0,a,a,0,0])):
+                    count += 1
+                # lower right diagonal direction
+                if self.inside([(r+4,c+4)]) and (self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4)], [0,0,a,a,0]) \
+                                              or self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4)], [0,a,a,0,0])):
+                    count += 1
         return count
 
     def count_closed_two(self, color_id):
@@ -703,18 +891,18 @@ class wuziqi:
                         return color_id
         return -1
 
-    def nearby_moves(self):
+    def nearby_moves(self, buffer_size=1):
         nearby_row_col = []
         for row in range(self.nrow):
             for col in range(self.ncol):
                 if self.board[row][col] > 0:
-                    row_max = min(row + 1, self.nrow)
-                    col_max = min(col + 1, self.ncol)
-                    row_min = max(row - 1, 0)
-                    col_min = max(col - 1, 0)
+                    row_max = min(row + buffer_size+1, self.nrow)
+                    col_max = min(col + buffer_size+1, self.ncol)
+                    row_min = max(row - buffer_size, 0)
+                    col_min = max(col - buffer_size, 0)
 
-                    for r in range(row_min, row_max + 1):
-                        for c in range(col_min, col_max + 1):
+                    for r in range(row_min, row_max):
+                        for c in range(col_min, col_max):
                             if self.board[r][c] == 0 and (r, c) not in nearby_row_col:
                                 nearby_row_col.append((r, c))
         return nearby_row_col
@@ -843,63 +1031,59 @@ class wuziqi:
         # greedy algorithm
         best_score = float("-inf")
         best_row, best_col = -1, -1
-        for row in range(self.nrow):
-            for col in range(self.ncol):
-                if self.board[row][col]==0:
-                    score = self.evaluate_board_greedy(row, col)
-                    if best_score < score:
-                        best_score = score
-                        best_row, best_col = row, col
+        possible_moves = self.nearby_moves(buffer_size=2)
+        for (row, col) in possible_moves:
+            score = self.evaluate_board_greedy(row,col)
+            if best_score < score:
+                best_score = score
+                best_row, best_col = row, col
         return best_row, best_col
 
     def evaluate_board_greedy(self, row, col):
         # evaluate computer offense
         self.board[row][col] = self.computer_color
-        computer_connected_five = self.count_five(self.computer_color)
-        computer_open_four      = self.count_open_four(self.computer_color)
-        computer_closed_four    = self.count_closed_four(self.computer_color)  - computer_open_four
-        computer_open_three     = self.count_open_three(self.computer_color)
-        computer_closed_three   = self.count_closed_three(self.computer_color) - computer_open_three
-        computer_open_two       = self.count_open_two(self.computer_color)
-        computer_closed_two     = self.count_closed_two(self.computer_color)   - computer_open_two
-        # computer_double_three   = self.count_double_three(self.computer_color)
+        computer_connected_five = self.count_five_greedy(self.computer_color)
+        computer_open_four      = self.count_open_four_greedy(self.computer_color)
+        computer_closed_four    = self.count_closed_four_greedy(self.computer_color)
+        computer_open_three     = self.count_open_three_greedy(self.computer_color)
+        computer_closed_three   = self.count_closed_three_greedy(self.computer_color)
+        computer_open_two       = self.count_open_two_greedy(self.computer_color)
+        computer_closed_two     = self.count_closed_two_greedy(self.computer_color)
         computer_double_three = 0
         computer_double_four = 0
         if computer_open_three >= 2:
             computer_double_three = 1
-            print("row=%d, col=%d, computer double three, number of open three %d" %(row, col, computer_open_three))
         if computer_closed_four >=2:
-            print("computer double four")
             computer_double_four = 1
         self.board[row][col] = 0
+        #print("computer_closed_two: %d"%computer_closed_two)
 
         offend_score   = self.open_two_points * computer_open_two + self.close_two_points * computer_closed_two \
                          + self.open_three_points * computer_open_three + self.close_three_points * computer_closed_three \
                          + self.open_four_points * computer_open_four + self.closed_four_points * computer_closed_four \
-                         + self.open_four_points * computer_double_three + self.open_four_points * computer_double_four \
+                         + self.double_three_points * computer_double_three + self.open_four_points * computer_double_four \
                          + self.connected_five_points * computer_connected_five
 
         # evaluate computer defense
         self.board[row][col] = self.player_color
-        player_connected_five  = self.count_five(self.player_color)
-        player_open_four       = self.count_open_four(self.player_color)
-        player_closed_four     = self.count_closed_four(self.player_color)  - player_open_four
-        player_open_three      = self.count_open_three(self.player_color)
-        player_closed_three    = self.count_closed_three(self.player_color) - player_open_three
-        player_open_two        = self.count_open_two(self.player_color)
-        player_closed_two      = self.count_closed_two(self.player_color)   - player_open_two
-        # player_double_three    = self.count_double_three(self.player_color)
+        player_connected_five  = self.count_five_greedy(self.player_color)
+        player_open_four       = self.count_open_four_greedy(self.player_color)
+        player_closed_four     = self.count_closed_four_greedy(self.player_color)
+        player_open_three      = self.count_open_three_greedy(self.player_color)
+        player_closed_three    = self.count_closed_three_greedy(self.player_color)
+        player_open_two        = self.count_open_two_greedy(self.player_color)
+        player_closed_two      = self.count_closed_two_greedy(self.player_color)
         player_double_three = 0
         player_double_four = 0
         if player_open_three >= 2:
             player_double_three = 1
-        if player_closed_four == 2:
+        if player_closed_four >= 2:
             player_double_four =1
         self.board[row][col] = 0
         defend_score = self.open_two_points * player_open_two + self.close_two_points * player_closed_two \
                        + (self.open_three_points * player_open_three + self.close_three_points * player_closed_three \
                        + self.open_four_points * player_open_four + self.closed_four_points * player_closed_four \
-                       + self.connected_five_points * player_connected_five + self.open_four_points*player_double_three\
+                       + self.connected_five_points * player_connected_five + self.double_three_points*player_double_three\
                        + self.open_four_points*player_double_four) * 2
         return offend_score + defend_score
 
@@ -1309,8 +1493,8 @@ class wuziqi:
                 # ? ? * ? ?
                 # ? ? 0 ? ?   (row+2, col)
                 if self.inside([(row-2, col), (row+2, col), (row, col-2), (row, col+2)]) \
-                        and self.check_pattern([(row-2,col), (row-1,col), (row,col), (row+1,col), (row+2,col)], [0,color_id,color_id,color_id,0]) \
-                        and self.check_pattern([(row,col-2), (row,col-1), (row,col), (row,col+1), (row,col+2)], [0,color_id,color_id,color_id,0]):
+                        and self.check([(row-2,col), (row-1,col), (row,col), (row+1,col), (row+2,col)], [0,color_id,color_id,color_id,0]) \
+                        and self.check([(row,col-2), (row,col-1), (row,col), (row,col+1), (row,col+2)], [0,color_id,color_id,color_id,0]):
                     count += 1
 
                 # (10)
@@ -1320,8 +1504,8 @@ class wuziqi:
                 # ? * ? * ?
                 # 0 ? ? ? 0    (row+2, col-2), (row+2, col+2)
                 if self.inside([(row-2, col-2), (row-2, col+2), (row+2, col-2), (row+2, col+2)]) \
-                    and self.check_pattern([(row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2)], [0,color_id,color_id,color_id,0]) \
-                    and self.check_pattern([(row+2,col-2), (row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2)], [0,color_id,color_id,color_id,0]):
+                    and self.check([(row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2)], [0,color_id,color_id,color_id,0]) \
+                    and self.check([(row+2,col-2), (row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2)], [0,color_id,color_id,color_id,0]):
                     count += 1
 
                 # (11)
@@ -1331,8 +1515,8 @@ class wuziqi:
                 # ? * ? ? ? ?
                 # 0 ? ? ? ? ?   (row+3,col-3)
                 if self.inside([(row-1,col+1), (row,col+2), (row+3,col-3)]) \
-                    and self.check_pattern([(row+3,col-3),(row+2,col-2),(row+1,col-1),(row,col),(row-1,col+1)], [0,color_id,color_id,color_id,0]) \
-                    and self.check_pattern([(row,col-2),(row,col-1),(row,col),(row,col+1),(row,col+2)], [0,color_id,color_id,color_id,0]):
+                    and self.check([(row+3,col-3),(row+2,col-2),(row+1,col-1),(row,col),(row-1,col+1)], [0,color_id,color_id,color_id,0]) \
+                    and self.check([(row,col-2),(row,col-1),(row,col),(row,col+1),(row,col+2)], [0,color_id,color_id,color_id,0]):
                     count += 1
 
                 # (12)
@@ -1342,8 +1526,8 @@ class wuziqi:
                 # ? ? ? ? * ?
                 # ? ? ? ? ? 0    (row+2, col+2)
                 if self.inside([(row-2,col-2), (row+2,col+2), (row,col-3)]) \
-                    and self.check_pattern([(row,col-3), (row,col-2), (row,col-1), (row,col), (row,col+1)], [0, color_id, color_id, color_id, 0]) \
-                    and self.check_pattern([(row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2)], [0, color_id, color_id, color_id, 0]):
+                    and self.check([(row,col-3), (row,col-2), (row,col-1), (row,col), (row,col+1)], [0, color_id, color_id, color_id, 0]) \
+                    and self.check([(row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2)], [0, color_id, color_id, color_id, 0]):
                     count += 1
                 # (13)
                 # 0 ? ? ? ?     (row-3, col-3)
@@ -1352,10 +1536,10 @@ class wuziqi:
                 # ? ? ? x ?     (row, col)
                 # ? ? ? * 0     (row+1, col+1)
                 # ? ? ? 0 ?     (row+2, col)
-                #    and self.check_pattern([(), (), (), (), ()], [0, color_id, color_id, color_id, 0])
+                #    and self.check([(), (), (), (), ()], [0, color_id, color_id, color_id, 0])
                 if self.inside([(row-3,col-3), (row+1,col+1), (row+2,col)]) \
-                    and self.check_pattern([(row-3,col-3), (row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1)], [0, color_id, color_id, color_id, 0])\
-                    and self.check_pattern([(row-2,col), (row-1,col), (row,col), (row+1,col), (row+2,col)], [0, color_id, color_id, color_id, 0]):
+                    and self.check([(row-3,col-3), (row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1)], [0, color_id, color_id, color_id, 0])\
+                    and self.check([(row-2,col), (row-1,col), (row,col), (row+1,col), (row+2,col)], [0, color_id, color_id, color_id, 0]):
                     count += 1
 
                 # (14)
@@ -1366,8 +1550,8 @@ class wuziqi:
                 # ? * 0 ? ?
                 # 0 ? ? ? ?    (row+2, col-2)
                 if self.inside([(row-3,col), (row-2,col+2), (row+2,col-2)]) \
-                    and self.check_pattern([(row+2,col-2), (row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2)], [0, color_id, color_id, color_id, 0])\
-                    and self.check_pattern([(row-3,col), (row-2,col), (row-1,col), (row,col), (row+1,col)], [0, color_id, color_id, color_id, 0]):
+                    and self.check([(row+2,col-2), (row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2)], [0, color_id, color_id, color_id, 0])\
+                    and self.check([(row-3,col), (row-2,col), (row-1,col), (row,col), (row+1,col)], [0, color_id, color_id, color_id, 0]):
                     count += 1
                 # (15)
                 # ? ? ? ? ? 0  (row-3,col+3)
@@ -1376,8 +1560,8 @@ class wuziqi:
                 # 0 * x * 0 ?   (row, col-2) (row,col)
                 # ? 0 ? ? ? ?   (row+1, col-1)
                 if self.inside([(row+1,col-1), (row,col-2), (row-3,col+3)]) \
-                    and self.check_pattern([(row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2), (row-3,col+3)], [0, color_id, color_id, color_id, 0]) \
-                    and self.check_pattern([(row,col-2), (row,col-1), (row,col), (row,col+1), (row,col+2)], [0, color_id, color_id, color_id, 0]):
+                    and self.check([(row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2), (row-3,col+3)], [0, color_id, color_id, color_id, 0]) \
+                    and self.check([(row,col-2), (row,col-1), (row,col), (row,col+1), (row,col+2)], [0, color_id, color_id, color_id, 0]):
                     count += 1
                 # (16)
                 # 0 ? ? ? ? ?    (row-2,col-2)
@@ -1386,8 +1570,8 @@ class wuziqi:
                 # ? ? ? * ? ?
                 # ? ? ? ? 0 ?    (row+2,col+2)
                 if self.inside([(row-2,col-2), (row,col+3), (row+2,col+2)]) \
-                    and self.check_pattern([(row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2)], [0, color_id, color_id, color_id, 0]) \
-                    and self.check_pattern([(row,col-1), (row,col), (row,col+1), (row,col+2), (row,col+3)], [0, color_id, color_id, color_id, 0]):
+                    and self.check([(row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2)], [0, color_id, color_id, color_id, 0]) \
+                    and self.check([(row,col-1), (row,col), (row,col+1), (row,col+2), (row,col+3)], [0, color_id, color_id, color_id, 0]):
                     count += 1
 
                 # (17)
@@ -1398,8 +1582,8 @@ class wuziqi:
                 # ? 0 ? * ?
                 # ? ? ? ? 0 (row+3,col+3)
                 if self.inside([(row-2,col), (row-1,col-1), (row+3,col+3)])\
-                    and self.check_pattern([(row-2,col), (row-1,col), (row,col), (row+1,col), (row+2,col)], [0, color_id, color_id, color_id, 0])\
-                    and self.check_pattern([(row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2), (row+3,col+3)], [0, color_id, color_id, color_id, 0]):
+                    and self.check([(row-2,col), (row-1,col), (row,col), (row+1,col), (row+2,col)], [0, color_id, color_id, color_id, 0])\
+                    and self.check([(row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2), (row+3,col+3)], [0, color_id, color_id, color_id, 0]):
                     count += 1
                 # (18)
                 # ? ? ? ? 0 ?    (row-2, col+2)
@@ -1409,12 +1593,12 @@ class wuziqi:
                 # 0 ? * ? ? ?    (row+2, col-2)
                 # ? ? 0 ? ? ?    (row+3,col)
                 if self.inside([(row-2,col+2), (row+2,col-2), (row+3,col)]) \
-                    and self.check_pattern([(row+2,col-2), (row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2)], [0, color_id, color_id, color_id, 0]) \
-                    and self.check_pattern([(row-1,col), (row,col), (row+1,col), (row+2,col), (row+3,col)], [0, color_id, color_id, color_id, 0]):
+                    and self.check([(row+2,col-2), (row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2)], [0, color_id, color_id, color_id, 0]) \
+                    and self.check([(row-1,col), (row,col), (row+1,col), (row+2,col), (row+3,col)], [0, color_id, color_id, color_id, 0]):
                     count += 1
         return count
 
-    def check_pattern(self, stone_row_col_list, pattern):
+    def check(self, stone_row_col_list, pattern):
         result = True
         for k in range(len(stone_row_col_list)):
             row, col = stone_row_col_list[k]
