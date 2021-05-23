@@ -49,14 +49,14 @@ class wuziqi:
         self.board = [[0 for i in range(self.ncol)] for j in range(self.nrow)]
 
         # scores for different situations
-        self.connected_five_points = 20000
-        self.open_four_points = 20000
-        self.double_three_points = 10000
-        self.closed_four_points = 2000
-        self.open_three_points =  2000
-        self.close_three_points = 20
-        self.open_two_points = 2
-        self.close_two_points = 1
+        self.connected_5_pts = 20000
+        self.open_4_pts = 20000
+        self.double_3_pts = 10000
+        self.closed_4_pts = 2000
+        self.open_3_pts =  2000
+        self.closed_3_pts = 20
+        self.open_2_pts = 2
+        self.closed_2_pts = 1
         self.player_penalty = 10.0
         # catch for the minimax search algorithm
         # key: board code
@@ -93,7 +93,7 @@ class wuziqi:
         else:
             return False
 
-    def count_five_greedy(self, color_id):
+    def count_five(self, color_id):
         a = color_id
         count = 0
         #  a a a a a
@@ -116,41 +116,7 @@ class wuziqi:
                     count +=1
         return count
 
-    def count_five(self, color_id):
-        count = 0
-        for row in range(self.nrow):
-            for col in range(self.ncol):
-                if self.in_board(row, col + 4) \
-                        and self.board[row][col] == color_id \
-                        and self.board[row][col + 1] == color_id \
-                        and self.board[row][col + 2] == color_id \
-                        and self.board[row][col + 3] == color_id \
-                        and self.board[row][col + 4] == color_id:
-                    count = count + 1
-                if self.in_board(row + 4, col) \
-                        and self.board[row][col] == color_id \
-                        and self.board[row + 1][col] == color_id \
-                        and self.board[row + 2][col] == color_id \
-                        and self.board[row + 3][col] == color_id \
-                        and self.board[row + 4][col] == color_id:
-                    count = count + 1
-                if self.in_board(row + 4, col + 4) \
-                        and self.board[row][col] == color_id \
-                        and self.board[row + 1][col + 1] == color_id \
-                        and self.board[row + 2][col + 2] == color_id \
-                        and self.board[row + 3][col + 3] == color_id \
-                        and self.board[row + 4][col + 4] == color_id:
-                    count = count + 1
-                if self.in_board(row - 4, col + 4) \
-                        and self.board[row][col] == color_id \
-                        and self.board[row - 1][col + 1] == color_id \
-                        and self.board[row - 2][col + 2] == color_id \
-                        and self.board[row - 3][col + 3] == color_id \
-                        and self.board[row - 4][col + 4] == color_id:
-                    count = count + 1
-        return count
-
-    def count_open_four_greedy(self, color_id):
+    def count_open_four(self, color_id):
         a = color_id
         count = 0
         # 0 a a a a 0
@@ -173,57 +139,7 @@ class wuziqi:
                     count += 1
         return count
 
-
-    def count_open_four(self, color_id):  # color_id: 0 -> unoccupied, 1 -> black, 2 -> white
-        count = 0
-        for row in range(self.nrow):
-            for col in range(self.ncol):
-                # check the horizontal direction, from left to right 
-                # there are 5 more points to the right of the current point
-                # the current (first) point is not occupied
-                # the second point in the right is occupied with the  color_id
-                # the third point in the right is occupied with the color_id
-                # the fourth point in the right is occupied with the color_id
-                # the fifth point in the right is occupied with the color_id
-                # the sixth point in the right is not occupied
-                if self.in_board(row, col + 5) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row][col + 1] == color_id \
-                        and self.board[row][col + 2] == color_id \
-                        and self.board[row][col + 3] == color_id \
-                        and self.board[row][col + 4] == color_id \
-                        and self.board[row][col + 5] == 0:
-                    count = count + 1
-                # check the vertical direction, from top to bottom
-                if self.in_board(row + 5, col) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row + 1][col] == color_id \
-                        and self.board[row + 2][col] == color_id \
-                        and self.board[row + 3][col] == color_id \
-                        and self.board[row + 4][col] == color_id \
-                        and self.board[row + 5][col] == 0:
-                    count = count + 1
-                # check the diagonal direction 1, from upper left to lower right
-                if self.in_board(row + 5, col + 5) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row + 1][col + 1] == color_id \
-                        and self.board[row + 2][col + 2] == color_id \
-                        and self.board[row + 3][col + 3] == color_id \
-                        and self.board[row + 4][col + 4] == color_id \
-                        and self.board[row + 5][col + 5] == 0:
-                    count = count + 1
-                # check the diagonal direction 2, from lower left to upper right
-                if self.in_board(row - 5, col + 5) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row - 1][col + 1] == color_id \
-                        and self.board[row - 2][col + 2] == color_id \
-                        and self.board[row - 3][col + 3] == color_id \
-                        and self.board[row - 4][col + 4] == color_id \
-                        and self.board[row - 5][col + 5] == 0:
-                    count = count + 1
-        return count
-
-    def count_closed_four_greedy(self, color_id):
+    def count_closed_four(self, color_id):
         a = color_id             # current color to check
         b = self.opp_color[a]    # opponent color
         count = 0
@@ -252,69 +168,7 @@ class wuziqi:
                     count += 1
         return count
 
-    def count_closed_four(self, color_id):
-        count = 0
-        for row in range(self.nrow):
-            for col in range(self.ncol):
-                # horizontal direction
-                if (self.in_board(row, col + 4) \
-                    and self.board[row][col] == 0 \
-                    and self.board[row][col + 1] == color_id \
-                    and self.board[row][col + 2] == color_id \
-                    and self.board[row][col + 3] == color_id \
-                    and self.board[row][col + 4] == color_id) \
-                        or (self.in_board(row, col + 4) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row][col + 1] == color_id \
-                            and self.board[row][col + 2] == color_id \
-                            and self.board[row][col + 3] == color_id \
-                            and self.board[row][col + 4] == 0):
-                    count = count + 1
-                # vertical direction 
-                elif (self.in_board(row + 4, col) \
-                      and self.board[row][col] == 0 \
-                      and self.board[row + 1][col] == color_id \
-                      and self.board[row + 2][col] == color_id \
-                      and self.board[row + 3][col] == color_id \
-                      and self.board[row + 4][col] == color_id) \
-                        or (self.in_board(row + 4, col) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row + 1][col] == color_id \
-                            and self.board[row + 2][col] == color_id \
-                            and self.board[row + 3][col] == color_id \
-                            and self.board[row + 4][col] == 0):
-                    count = count + 1
-                # diagonal direction 1, to lower right
-                elif (self.in_board(row + 4, col + 4) \
-                      and self.board[row][col] == 0 \
-                      and self.board[row + 1][col + 1] == color_id \
-                      and self.board[row + 2][col + 2] == color_id \
-                      and self.board[row + 3][col + 3] == color_id \
-                      and self.board[row + 4][col + 4] == color_id) \
-                        or (self.in_board(row + 4, col + 4) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row + 1][col + 1] == color_id \
-                            and self.board[row + 2][col + 2] == color_id \
-                            and self.board[row + 3][col + 3] == color_id \
-                            and self.board[row + 4][col + 4] == 0):
-                    count = count + 1
-                # diagonal direction 1, to upper right
-                elif (self.in_board(row - 4, col + 4) \
-                      and self.board[row][col] == 0 \
-                      and self.board[row - 1][col + 1] == color_id \
-                      and self.board[row - 2][col + 2] == color_id \
-                      and self.board[row - 3][col + 3] == color_id \
-                      and self.board[row - 4][col + 4] == color_id) \
-                        or (self.in_board(row - 4, col + 4) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row - 1][col + 1] == color_id \
-                            and self.board[row - 2][col + 2] == color_id \
-                            and self.board[row - 3][col + 3] == color_id \
-                            and self.board[row - 4][col + 4] == 0):
-                    count = count + 1
-        return count
-
-    def count_open_three_greedy(self, color_id):
+    def count_open_three(self, color_id):
         count = 0
         a = color_id # current cor to check
         for r in range(self.nrow):
@@ -333,86 +187,7 @@ class wuziqi:
                     count += 1
         return count
 
-
-
-    def count_open_three(self, color_id):
-        count = 0
-        for row in range(self.nrow):
-            for col in range(self.ncol):
-                # check the horizontal direction, from left to right 
-                # there are 5 more points to the right of the current point
-                # the current (first) point is not occupied
-                # the second point in the right is not occupied
-                # the third point in the right is occupied with the color_id
-                # the fourth point in the right is occupied with the color_id
-                # the fifth point in the right is occupied with the color_id
-                # the sixth point in the right is not occupied
-                if (self.in_board(row, col + 5) \
-                    and self.board[row][col] == 0 \
-                    and self.board[row][col + 1] == 0 \
-                    and self.board[row][col + 2] == color_id \
-                    and self.board[row][col + 3] == color_id \
-                    and self.board[row][col + 4] == color_id \
-                    and self.board[row][col + 5] == 0) \
-                        or (self.in_board(row, col + 5) \
-                            and self.board[row][col] == 0 \
-                            and self.board[row][col + 1] == color_id \
-                            and self.board[row][col + 2] == color_id \
-                            and self.board[row][col + 3] == color_id \
-                            and self.board[row][col + 4] == 0 \
-                            and self.board[row][col + 5] == 0):
-                    count = count + 1
-                # check the vertical direction, from top to bottom
-                if (self.in_board(row + 5, col) \
-                    and self.board[row][col] == 0 \
-                    and self.board[row + 1][col] == 0 \
-                    and self.board[row + 2][col] == color_id \
-                    and self.board[row + 3][col] == color_id \
-                    and self.board[row + 4][col] == color_id \
-                    and self.board[row + 5][col] == 0) \
-                        or (self.in_board(row + 5, col) \
-                            and self.board[row][col] == 0 \
-                            and self.board[row + 1][col] == color_id \
-                            and self.board[row + 2][col] == color_id \
-                            and self.board[row + 3][col] == color_id \
-                            and self.board[row + 4][col] == 0 \
-                            and self.board[row + 5][col] == 0):
-                    count = count + 1
-                # check the diagonal direction 1, from upper left to lower right
-                if (self.in_board(row + 5, col + 5) \
-                    and self.board[row][col] == 0 \
-                    and self.board[row + 1][col + 1] == 0 \
-                    and self.board[row + 2][col + 2] == color_id \
-                    and self.board[row + 3][col + 3] == color_id \
-                    and self.board[row + 4][col + 4] == color_id \
-                    and self.board[row + 5][col + 5] == 0) \
-                        or (self.in_board(row + 5, col + 5) \
-                            and self.board[row][col] == 0 \
-                            and self.board[row + 1][col + 1] == color_id \
-                            and self.board[row + 2][col + 2] == color_id \
-                            and self.board[row + 3][col + 3] == color_id \
-                            and self.board[row + 4][col + 4] == 0 \
-                            and self.board[row + 5][col + 5] == 0):
-                    count = count + 1
-                # check the diagonal direction 2, from lower left to uper right
-                if (self.in_board(row - 5, col + 5) \
-                    and self.board[row][col] == 0 \
-                    and self.board[row - 1][col + 1] == 0 \
-                    and self.board[row - 2][col + 2] == color_id \
-                    and self.board[row - 3][col + 3] == color_id \
-                    and self.board[row - 4][col + 4] == color_id \
-                    and self.board[row - 5][col + 5] == 0) \
-                        or (self.in_board(row - 5, col + 5) \
-                            and self.board[row][col] == 0 \
-                            and self.board[row - 1][col + 1] == color_id \
-                            and self.board[row - 2][col + 2] == color_id \
-                            and self.board[row - 3][col + 3] == color_id \
-                            and self.board[row - 4][col + 4] == 0 \
-                            and self.board[row - 5][col + 5] == 0):
-                    count = count + 1
-        return count
-
-    def count_closed_three_greedy(self, color_id):
+    def count_closed_three(self, color_id):
         a = color_id
         b = self.opp_color[a]
         count = 0
@@ -441,117 +216,7 @@ class wuziqi:
                     count += 1
         return count
 
-    def count_closed_three(self, color_id):
-        count = 0
-        for row in range(self.nrow):
-            for col in range(self.ncol):
-                # horizontal direction
-                if (self.in_board(row, col + 4) \
-                    and self.board[row][col] == 0 \
-                    and self.board[row][col + 1] == 0 \
-                    and self.board[row][col + 2] == color_id \
-                    and self.board[row][col + 3] == color_id \
-                    and self.board[row][col + 4] == color_id) \
-                        or (self.in_board(row, col + 4) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row][col + 1] == color_id \
-                            and self.board[row][col + 2] == color_id \
-                            and self.board[row][col + 3] == 0 \
-                            and self.board[row][col + 4] == 0):
-                    count = count + 1
-                # vertical direction 
-                elif (self.in_board(row + 4, col) \
-                      and self.board[row][col] == 0 \
-                      and self.board[row + 1][col] == 0 \
-                      and self.board[row + 2][col] == color_id \
-                      and self.board[row + 3][col] == color_id \
-                      and self.board[row + 4][col] == color_id) \
-                        or (self.in_board(row + 4, col) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row + 1][col] == color_id \
-                            and self.board[row + 2][col] == color_id \
-                            and self.board[row + 3][col] == 0 \
-                            and self.board[row + 4][col] == 0):
-                    count = count + 1
-                # diagonal direction 1, to lower right
-                elif (self.in_board(row + 4, col + 4) \
-                      and self.board[row][col] == 0 \
-                      and self.board[row + 1][col + 1] == 0 \
-                      and self.board[row + 2][col + 2] == color_id \
-                      and self.board[row + 3][col + 3] == color_id \
-                      and self.board[row + 4][col + 4] == color_id) \
-                        or (self.in_board(row + 4, col + 4) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row + 1][col + 1] == color_id \
-                            and self.board[row + 2][col + 2] == color_id \
-                            and self.board[row + 3][col + 3] == 0 \
-                            and self.board[row + 4][col + 4] == 0):
-                    count = count + 1
-                # diagonal direction 1, to upper right
-                elif (self.in_board(row - 4, col + 4) \
-                      and self.board[row][col] == 0 \
-                      and self.board[row - 1][col + 1] == 0 \
-                      and self.board[row - 2][col + 2] == color_id \
-                      and self.board[row - 3][col + 3] == color_id \
-                      and self.board[row - 4][col + 4] == color_id) \
-                        or (self.in_board(row - 4, col + 4) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row - 1][col + 1] == color_id \
-                            and self.board[row - 2][col + 2] == color_id \
-                            and self.board[row - 3][col + 3] == 0 \
-                            and self.board[row - 4][col + 4] == 0):
-                    count = count + 1
-        return count
-
-    def count_open_two(self, color_id):
-        count = 0
-        for row in range(self.nrow):
-            for col in range(self.ncol):
-                if self.in_board(row, col + 7) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row][col + 1] == 0 \
-                        and self.board[row][col + 2] == 0 \
-                        and self.board[row][col + 3] == color_id \
-                        and self.board[row][col + 4] == color_id \
-                        and self.board[row][col + 5] == 0 \
-                        and self.board[row][col + 6] == 0 \
-                        and self.board[row][col + 7] == 0:
-                    count = count + 1
-                if self.in_board(row + 7, col) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row + 1][col] == 0 \
-                        and self.board[row + 2][col] == 0 \
-                        and self.board[row + 3][col] == color_id \
-                        and self.board[row + 4][col] == color_id \
-                        and self.board[row + 5][col] == 0 \
-                        and self.board[row + 6][col] == 0 \
-                        and self.board[row + 7][col] == 0:
-                    count = count + 1
-
-                if self.in_board(row + 7, col + 7) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row + 1][col + 1] == 0 \
-                        and self.board[row + 2][col + 2] == 0 \
-                        and self.board[row + 3][col + 3] == color_id \
-                        and self.board[row + 4][col + 4] == color_id \
-                        and self.board[row + 5][col + 5] == 0 \
-                        and self.board[row + 6][col + 6] == 0 \
-                        and self.board[row + 7][col + 7] == 0:
-                    count = count + 1
-
-                if self.in_board(row - 7, col + 7) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row - 1][col + 1] == 0 \
-                        and self.board[row - 2][col + 2] == 0 \
-                        and self.board[row - 3][col + 3] == color_id \
-                        and self.board[row - 4][col + 4] == color_id \
-                        and self.board[row - 5][col + 5] == 0 \
-                        and self.board[row - 6][col + 6] == 0 \
-                        and self.board[row - 7][col + 7] == 0:
-                    count = count + 1
-        return count
-
-    def count_closed_two_greedy(self, color_id):
+    def count_closed_two(self, color_id):
         a = color_id
         b = self.opp_color[a]
         count = 0
@@ -581,7 +246,7 @@ class wuziqi:
                     count += 1
         return count
 
-    def count_open_two_greedy(self, color_id):
+    def count_open_two(self, color_id):
         # only two situations of open two are considered for computational efficiency
         a = color_id
         count = 0
@@ -609,188 +274,45 @@ class wuziqi:
                     count += 1
         return count
 
-    def count_closed_two(self, color_id):
-        count = 0
-        for row in range(self.nrow):
-            for col in range(self.ncol):
-                if (self.in_board(row, col + 4) \
-                    and self.board[row][col] == 0 \
-                    and self.board[row][col + 1] == 0 \
-                    and self.board[row][col + 2] == 0 \
-                    and self.board[row][col + 3] == color_id \
-                    and self.board[row][col + 4] == color_id) \
-                        or (self.in_board(row, col + 4) \
-                            and self.board[row][col] == 0 \
-                            and self.board[row][col + 1] == 0 \
-                            and self.board[row][col + 2] == color_id \
-                            and self.board[row][col + 3] == color_id \
-                            and self.board[row][col + 4] == 0) \
-                        or (self.in_board(row, col + 4) \
-                            and self.board[row][col] == 0 \
-                            and self.board[row][col + 1] == color_id \
-                            and self.board[row][col + 2] == color_id \
-                            and self.board[row][col + 3] == 0 \
-                            and self.board[row][col + 4] == 0) \
-                        or (self.in_board(row, col + 4) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row][col + 1] == color_id \
-                            and self.board[row][col + 2] == 0 \
-                            and self.board[row][col + 3] == 0 \
-                            and self.board[row][col + 4] == 0):
-                    count = count + 1
-
-        for row in range(self.nrow):
-            for col in range(self.ncol):
-                if (self.in_board(row + 4, col) \
-                    and self.board[row][col] == 0 \
-                    and self.board[row + 1][col] == 0 \
-                    and self.board[row + 2][col] == 0 \
-                    and self.board[row + 3][col] == color_id \
-                    and self.board[row + 4][col] == color_id) \
-                        or (self.in_board(row + 4, col) \
-                            and self.board[row][col] == 0 \
-                            and self.board[row + 1][col] == 0 \
-                            and self.board[row + 2][col] == color_id \
-                            and self.board[row + 3][col] == color_id \
-                            and self.board[row + 4][col] == 0) \
-                        or (self.in_board(row + 4, col) \
-                            and self.board[row][col] == 0 \
-                            and self.board[row + 1][col] == color_id \
-                            and self.board[row + 2][col] == color_id \
-                            and self.board[row + 3][col] == 0 \
-                            and self.board[row + 4][col] == 0) \
-                        or (self.in_board(row + 4, col) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row + 1][col] == color_id \
-                            and self.board[row + 2][col] == 0 \
-                            and self.board[row + 3][col] == 0 \
-                            and self.board[row + 4][col] == 0):
-                    count = count + 1
-        for row in range(self.nrow):
-            for col in range(self.ncol):
-                if (self.in_board(row + 4, col + 4) \
-                    and self.board[row][col] == 0 \
-                    and self.board[row + 1][col + 1] == 0 \
-                    and self.board[row + 2][col + 2] == 0 \
-                    and self.board[row + 3][col + 3] == color_id \
-                    and self.board[row + 4][col + 4] == color_id) \
-                        or (self.in_board(row + 4, col + 4) \
-                            and self.board[row][col] == 0 \
-                            and self.board[row + 1][col + 1] == 0 \
-                            and self.board[row + 2][col + 2] == color_id \
-                            and self.board[row + 3][col + 3] == color_id \
-                            and self.board[row + 4][col + 4] == 0) \
-                        or (self.in_board(row + 4, col + 4) \
-                            and self.board[row][col] == 0 \
-                            and self.board[row + 1][col + 1] == color_id \
-                            and self.board[row + 2][col + 2] == color_id \
-                            and self.board[row + 3][col + 3] == 0 \
-                            and self.board[row + 4][col + 4] == 0) \
-                        or (self.in_board(row + 4, col + 4) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row + 1][col + 1] == color_id \
-                            and self.board[row + 2][col + 2] == 0 \
-                            and self.board[row + 3][col + 3] == 0 \
-                            and self.board[row + 4][col + 4] == 0):
-                    count = count + 1
-
-        for row in range(self.nrow):
-            for col in range(self.ncol):
-                if (self.in_board(row - 4, col + 4) \
-                    and self.board[row][col] == 0 \
-                    and self.board[row - 1][col + 1] == 0 \
-                    and self.board[row - 2][col + 2] == 0 \
-                    and self.board[row - 3][col + 3] == color_id \
-                    and self.board[row - 4][col + 4] == color_id) \
-                        or (self.in_board(row - 4, col + 4) \
-                            and self.board[row][col] == 0 \
-                            and self.board[row - 1][col + 1] == 0 \
-                            and self.board[row - 2][col + 2] == color_id \
-                            and self.board[row - 3][col + 3] == color_id \
-                            and self.board[row - 4][col + 4] == 0) \
-                        or (self.in_board(row - 4, col + 4) \
-                            and self.board[row][col] == 0 \
-                            and self.board[row - 1][col + 1] == color_id \
-                            and self.board[row - 2][col + 2] == color_id \
-                            and self.board[row - 3][col + 3] == 0 \
-                            and self.board[row - 4][col + 4] == 0) \
-                        or (self.in_board(row - 4, col + 4) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row - 1][col + 1] == color_id \
-                            and self.board[row - 2][col + 2] == 0 \
-                            and self.board[row - 3][col + 3] == 0 \
-                            and self.board[row - 4][col + 4] == 0):
-                    count = count + 1
-        return count
-
     def winning_position(self, color_id):
-        for row in range(self.nrow):
-            for col in range(self.ncol):
+        a = color_id
+        for r in range(self.nrow):
+            for c in range(self.ncol):
                 for offset in range(0, 5):
                     others = list(filter(lambda x: x != offset, [0, 1, 2, 3, 4]))
-                    if self.in_board(row, col + 4) \
-                            and self.board[row][col + offset] == 0 \
-                            and self.board[row][col + others[0]] == color_id \
-                            and self.board[row][col + others[1]] == color_id \
-                            and self.board[row][col + others[2]] == color_id \
-                            and self.board[row][col + others[3]] == color_id:
-                        return row, col + offset
-                    if self.in_board(row + 4, col) \
-                            and self.board[row + offset][col] == 0 \
-                            and self.board[row + others[0]][col] == color_id \
-                            and self.board[row + others[1]][col] == color_id \
-                            and self.board[row + others[2]][col] == color_id \
-                            and self.board[row + others[3]][col] == color_id:
-                        return row + offset, col
-                    if self.in_board(row + 4, col + 4) \
-                            and self.board[row + offset][col + offset] == 0 \
-                            and self.board[row + others[0]][col + others[0]] == color_id \
-                            and self.board[row + others[1]][col + others[1]] == color_id \
-                            and self.board[row + others[2]][col + others[2]] == color_id \
-                            and self.board[row + others[3]][col + others[3]] == color_id:
-                        return row + offset, col + offset
-                    if self.in_board(row - 4, col + 4) \
-                            and self.board[row - offset][col + offset] == 0 \
-                            and self.board[row - others[0]][col + others[0]] == color_id \
-                            and self.board[row - others[1]][col + others[1]] == color_id \
-                            and self.board[row - others[2]][col + others[2]] == color_id \
-                            and self.board[row - others[3]][col + others[3]] == color_id:
-                        return row - offset, col + offset
-        return (-1, -1)  # no winning position
+                    o0, o1, o2, o3 = others[0], others[1], others[2], others[3]
+                    # horizontal direction
+                    if self.inside([(r,c+4)]) and self.check([(r,c+offset),(r,c+o0),(r,c+o1),(r,r+o2),(r,c+o3)], [0,a,a,a,a]):
+                        return r, c+offset
+                    # vertical direction
+                    if self.inside([(r+4,c)]) and self.check([(r+offset,c),(r+o0,c),(r+o1,c),(r+o2,c),(r+o3,c)], [0,a,a,a,a]):
+                        return r+offset, c
+                    # upper right diagonal direction
+                    if self.inside([(r-4,c+4)]) and self.check([(r-offset,c+offset),(r-o0,c+o0),(r-o1,c+o1),(r-o2,c+o2),(r-o3,c+o3)], [0,a,a,a,a]):
+                        return r-offset, c+offset
+                    # lower right diagonal direction
+                    if self.inside([(r+4,c+4)]) and self.check([(r+offset,c+offset),(r+o0,c+o0),(r+o1,c+o1),(r+o2,c+o2),(r+o3,c+o3)], [0,a,a,a,a]):
+                        return r+offset, c+offset
+        return  -1, -1 # no winining position
 
-    def terminal_state(self):
-        for row in range(self.nrow):
-            for col in range(self.ncol):
-                for color_id in [1, 2]:
-                    if self.in_board(row, col + 4) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row][col + 1] == color_id \
-                            and self.board[row][col + 2] == color_id \
-                            and self.board[row][col + 3] == color_id \
-                            and self.board[row][col + 4] == color_id:
-                        return color_id
-                    if self.in_board(row + 4, col) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row + 1][col] == color_id \
-                            and self.board[row + 2][col] == color_id \
-                            and self.board[row + 3][col] == color_id \
-                            and self.board[row + 4][col] == color_id:
-                        return color_id
-                    if self.in_board(row + 4, col + 4) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row + 1][col + 1] == color_id \
-                            and self.board[row + 2][col + 2] == color_id \
-                            and self.board[row + 3][col + 3] == color_id \
-                            and self.board[row + 4][col + 4] == color_id:
-                        return color_id
-                    if self.in_board(row - 4, col + 4) \
-                            and self.board[row][col] == color_id \
-                            and self.board[row - 1][col + 1] == color_id \
-                            and self.board[row - 2][col + 2] == color_id \
-                            and self.board[row - 3][col + 3] == color_id \
-                            and self.board[row - 4][col + 4] == color_id:
-                        return color_id
-        return -1
+    def game_over(self):
+        for r in range(self.nrow):
+            for c in range(self.ncol):
+                for x in [self.computer_color, self.player_color]:
+                    # horizontal direction
+                    if self.inside([(r,c+4)]) and self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4)],[x,x,x,x,x]):
+                        return x
+                    # vertical direction
+                    if self.inside([(r+4,r)]) and self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c)], [x,x,x,x,x]):
+                        return x
+                    # upper right direction
+                    if self.inside([(r-4,c+4)]) and self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4)], [x,x,x,x,x]):
+                        return x
+                    # lower right direction
+                    if self.inside([(r+4,c+4)]) and self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4)], [x,x,x,x,x]):
+                        return x
+        return -1 # game is not over yet.
+
 
     def nearby_moves(self, buffer_size=1):
         nearby_row_col = []
@@ -864,15 +386,15 @@ class wuziqi:
         print("player_closed_three     =", player_closed_three)
         print("computer_closed_two     =", computer_closed_two)
         print("player_closed_two       =", player_closed_two)
-        #computer_score = self.open_two_points * computer_open_two + self.close_two_points * computer_closed_two \
-        #                 + self.open_three_points * computer_open_three + self.close_three_points * computer_closed_three \
-        #                 + self.open_four_points * computer_open_four + self.closed_four_points * computer_closed_four \
-        #                 + self.connected_five_points * computer_connected_five
+        #computer_score = self.open_2_pts * computer_open_two + self.closed_2_pts * computer_closed_two \
+        #                 + self.open_3_pts * computer_open_three + self.closed_3_pts * computer_closed_three \
+        #                 + self.open_4_pts * computer_open_four + self.closed_4_pts * computer_closed_four \
+        #                 + self.connected_5_pts * computer_connected_five
 
-        #player_score = self.open_two_points * player_open_two + self.close_two_points * player_closed_two \
-        #               + (self.open_three_points * player_open_three + self.close_three_points * player_closed_three \
-        #                  + self.open_four_points * player_open_four + self.closed_four_points * player_closed_four \
-        #                  + self.connected_five_points * player_connected_five) * 10
+        #player_score = self.open_2_pts * player_open_two + self.closed_2_pts * player_closed_two \
+        #               + (self.open_3_pts * player_open_three + self.closed_3_pts * player_closed_three \
+        #                  + self.open_4_pts * player_open_four + self.closed_4_pts * player_closed_four \
+        #                  + self.connected_5_pts * player_connected_five) * 10
 
         if maximize_computer:
             computer_score = 2*computer_open_two + 1*computer_closed_two +  200*computer_open_three + 20*computer_closed_three +  2000*computer_open_four +  200*computer_closed_four + 2000*computer_connected_five
@@ -943,34 +465,41 @@ class wuziqi:
     def evaluate_board_greedy(self, row, col):
         # evaluate computer offense
         self.board[row][col] = self.computer_color
-        computer_connected_five = self.count_five_greedy(self.computer_color)
-        computer_open_four      = self.count_open_four_greedy(self.computer_color)
-        computer_closed_four    = self.count_closed_four_greedy(self.computer_color)
-        computer_open_three     = self.count_open_three_greedy(self.computer_color)
-        computer_closed_three   = self.count_closed_three_greedy(self.computer_color)
-        computer_open_two       = self.count_open_two_greedy(self.computer_color)
-        computer_closed_two     = self.count_closed_two_greedy(self.computer_color)
+        computer_connected_five = self.count_five(self.computer_color)
+        computer_open_four      = self.count_open_four(self.computer_color)
+        computer_closed_four    = self.count_closed_four(self.computer_color)
+        computer_open_three     = self.count_open_three(self.computer_color)
+        computer_closed_three   = self.count_closed_three(self.computer_color)
+        computer_open_two       = self.count_open_two(self.computer_color)
+        computer_closed_two     = self.count_closed_two(self.computer_color)
+        computer_double_three   = self.count_double_three(self.computer_color)
+        if computer_double_three > 0:
+            print("computer double three: row=%d, col=%d"%(row,col))
         self.board[row][col] = 0
 
-        offend_score   = self.open_two_points * computer_open_two + self.close_two_points * computer_closed_two \
-                         + self.open_three_points * computer_open_three + self.close_three_points * computer_closed_three \
-                         + self.open_four_points * computer_open_four + self.closed_four_points * computer_closed_four \
-                         + self.connected_five_points * computer_connected_five
+        offend_score   = self.open_2_pts * computer_open_two + self.closed_2_pts * computer_closed_two \
+                         + self.open_3_pts * computer_open_three + self.closed_3_pts * computer_closed_three \
+                         + self.open_4_pts * computer_open_four + self.closed_4_pts * computer_closed_four \
+                         + self.connected_5_pts * computer_connected_five + self.double_3_pts * computer_double_three
 
         # evaluate computer defense
         self.board[row][col] = self.player_color
-        player_connected_five  = self.count_five_greedy(self.player_color)
-        player_open_four       = self.count_open_four_greedy(self.player_color)
-        player_closed_four     = self.count_closed_four_greedy(self.player_color)
-        player_open_three      = self.count_open_three_greedy(self.player_color)
-        player_closed_three    = self.count_closed_three_greedy(self.player_color)
-        player_open_two        = self.count_open_two_greedy(self.player_color)
-        player_closed_two      = self.count_closed_two_greedy(self.player_color)
+        player_connected_five  = self.count_five(self.player_color)
+        player_open_four       = self.count_open_four(self.player_color)
+        player_closed_four     = self.count_closed_four(self.player_color)
+        player_open_three      = self.count_open_three(self.player_color)
+        player_closed_three    = self.count_closed_three(self.player_color)
+        player_open_two        = self.count_open_two(self.player_color)
+        player_closed_two      = self.count_closed_two(self.player_color)
+        player_double_three    = self.count_double_three(self.player_color)
+
+        if player_double_three > 0:
+            print("player double three: row=%d, col=%d"%(row,col))
         self.board[row][col] = 0
-        defend_score = self.open_two_points * player_open_two + self.close_two_points * player_closed_two \
-                       + (self.open_three_points * player_open_three + self.close_three_points * player_closed_three \
-                       + self.open_four_points * player_open_four + self.closed_four_points * player_closed_four \
-                       + self.connected_five_points * player_connected_five)*1
+        defend_score = self.open_2_pts * player_open_two + self.closed_2_pts * player_closed_two \
+                       + (self.open_3_pts * player_open_three + self.closed_3_pts * player_closed_three \
+                       + self.open_4_pts * player_open_four + self.closed_4_pts * player_closed_four \
+                       + self.connected_5_pts * player_connected_five + self.double_3_pts * player_double_three)*2
 
         return offend_score + defend_score
 
@@ -1005,7 +534,7 @@ class wuziqi:
         return best_row, best_col
 
     def minimax_wiki(self, depth, maximize_computer_flag):
-        if depth==0 or self.terminal_state() != -1:
+        if depth==0 or self.game_over() != -1:
             board_code = self.board_string_code()
             if board_code in self.minimax_records.keys():
                 return self.minimax_records[board_code]
@@ -1057,9 +586,9 @@ class wuziqi:
         print("current_depth = ", current_depth)
         print("target_depth = ", target_depth)
         print("maximize_player_flag = ", maximize_player_flag)
-        print("terminal_state = ", self.terminal_state())
+        print("game_over = ", self.game_over())
         self.print_possible_moves(possible_moves)
-        if current_depth == target_depth or self.terminal_state() != -1:
+        if current_depth == target_depth or self.game_over() != -1:
             board_code = self.board_string_code()
             if board_code in self.minimax_records.keys():
                 return self.minimax_records[board_code]
@@ -1123,365 +652,260 @@ class wuziqi:
         return count
 
     def find_open_four(self, color_id):
-        for row in range(self.nrow):
-            for col in range(self.ncol):
+        a = color_id
+        # 0 A a a a 0
+        # -           - current point, A, return point
+        # 0 a a a A 0
+        # -           - current point, A, return point
+        for r in range(self.nrow):
+            for c in range(self.ncol):
                 # horizontal direction
-                if self.in_board(row, col + 5) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row][col + 1] == 0 \
-                        and self.board[row][col + 2] == color_id \
-                        and self.board[row][col + 3] == color_id \
-                        and self.board[row][col + 4] == color_id \
-                        and self.board[row][col + 5] == 0:
-                    return row, col + 1
-                if self.in_board(row, col + 5) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row][col + 1] == color_id \
-                        and self.board[row][col + 2] == color_id \
-                        and self.board[row][col + 3] == color_id \
-                        and self.board[row][col + 4] == 0 \
-                        and self.board[row][col + 5] == 0:
-                    return row, col + 4
+                if self.inside([(r,c+5)]) and self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4),(r,c+5)], [0,0,a,a,a,0]):
+                    return r, c+1
+                if self.inside([(r,c+5)]) and self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4),(r,c+5)], [0,a,a,a,0,0]):
+                    return r, c+4
                 # vertical direction
-                if self.in_board(row + 5, col) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row + 1][col] == 0 \
-                        and self.board[row + 2][col] == color_id \
-                        and self.board[row + 3][col] == color_id \
-                        and self.board[row + 4][col] == color_id \
-                        and self.board[row + 5][col] == 0:
-                    return row + 1, col
-                if self.in_board(row + 5, col) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row + 1][col] == color_id \
-                        and self.board[row + 2][col] == color_id \
-                        and self.board[row + 3][col] == color_id \
-                        and self.board[row + 4][col] == 0 \
-                        and self.board[row + 5][col] == 0:
-                    return row + 4, col
-                # diagonal direction to lower right
-                if self.in_board(row + 5, col + 5) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row + 1][col + 1] == 0 \
-                        and self.board[row + 2][col + 2] == color_id \
-                        and self.board[row + 3][col + 3] == color_id \
-                        and self.board[row + 4][col + 4] == color_id \
-                        and self.board[row + 5][col + 5] == 0:
-                    return row + 1, col + 1
-                if self.in_board(row + 5, col + 5) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row + 1][col + 1] == color_id \
-                        and self.board[row + 2][col + 2] == color_id \
-                        and self.board[row + 3][col + 3] == color_id \
-                        and self.board[row + 4][col + 4] == 0 \
-                        and self.board[row + 5][col + 5] == 0:
-                    return row + 4, col + 4
-                # diagonal direction to upper right
-                if self.in_board(row - 5, col + 5) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row - 1][col + 1] == 0 \
-                        and self.board[row - 2][col + 2] == color_id \
-                        and self.board[row - 3][col + 3] == color_id \
-                        and self.board[row - 4][col + 4] == color_id \
-                        and self.board[row - 5][col + 5] == 0:
-                    return row - 1, col + 1
-                if self.in_board(row - 5, col + 5) \
-                        and self.board[row][col] == 0 \
-                        and self.board[row - 1][col + 1] == color_id \
-                        and self.board[row - 2][col + 2] == color_id \
-                        and self.board[row - 3][col + 3] == color_id \
-                        and self.board[row - 4][col + 4] == 0 \
-                        and self.board[row - 5][col + 5] == 0:
-                    return row - 4, col + 4
-        return -1, -1
+                if self.inside([(r+5,c)]) and self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c),(r+5,c)], [0,0,a,a,a,0]):
+                    return r+1, c
+                if self.inside([(r+5,c)]) and self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c),(r+5,c)], [0,a,a,a,0,0]):
+                    return r+4, c
+                # upper right direction
+                if self.inside([(r-5,c+5)]) and self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4),(r-5,c+5)], [0,0,a,a,a,0]):
+                    return r-1, c+1
+                if self.inside([(r-5,c+5)]) and self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4),(r-5,c+5)], [0,a,a,a,0,0]):
+                    return r-4, c+4
+                # lower right direction
+                if self.inside([(r+5,c+5)]) and self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4),(r+5,c+5)], [0,0,a,a,a,0]):
+                    return r+1, c+1
+                if self.inside([(r+5,c+5)]) and self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4),(r+5,c+5)], [0,a,a,a,0,0]):
+                    return r+4, c+4
+        return -1, -1  # no open four
 
     def count_double_three(self, color_id):
+        a = color_id
         count = 0
-        for row in range(self.nrow):
-            for col in range(self.ncol):
+        for r in range(self.nrow):
+            for c in range(self.ncol):
+                # the algorithm requires that the current position is taken by color "a".
+                if self.board[r][c] != a:
+                    continue
                 # (1)
-                # ? 0 ? ? ?
+                # ? 0 ? ? ? (r-3,c)
                 # ? * ? ? ?
                 # ? * ? ? ?
-                # 0 x * * 0
-                # ? 0 ? ? ?
-                if self.in_board(row, col-1) \
-                        and self.in_board(row, col+3) \
-                        and self.in_board(row+1, col) \
-                        and self.in_board(row-3, col) \
-                        and self.board[row][col-1] == 0 \
-                        and self.board[row][col  ] == color_id \
-                        and self.board[row][col+1] == color_id \
-                        and self.board[row][col+2] == color_id \
-                        and self.board[row][col+3] == 0 \
-                        and self.board[row+1][col] == 0 \
-                        and self.board[row  ][col] == color_id \
-                        and self.board[row-1][col] == color_id \
-                        and self.board[row-2][col] == color_id \
-                        and self.board[row-3][col] == 0:
+                # 0 x * * 0 (r,c-1) (r,c) (r,c+3)
+                # ? 0 ? ? ? (r+1)
+                if self.inside([(r-3,c),(r+1,c),(r,c-1),(r,c+3)]) \
+                    and self.check([(r,c-1),(r,c),(r,c+1),(r,c+2),(r,c+3)], [0,a,a,a,0])\
+                    and self.check([(r+1,c),(r,c),(r-1,c),(r-2,c),(r-3,c)], [0,a,a,a,0]):
+                    print("1")
                     count += 1
                 # (2)
-                # ? ? ? ? 0
+                # ? ? ? ? 0 (r-3,c+3)
                 # ? ? ? * ?
-                # 0 ? * ? ?
-                # ? x ? ? ?
-                # 0 ? * ? ?
+                # 0 ? * ? ? (r-1,c-1)
+                # ? x ? ? ? (r,c)
+                # 0 ? * ? ? (r+1,c-1)
                 # ? ? ? * ?
-                # ? ? ? ? 0
-                if self.in_board(row-1, col-1) \
-                        and self.in_board(row+3, col+3) \
-                        and self.in_board(row+1, col-1) \
-                        and self.in_board(row-3, col+3) \
-                        and self.board[row-1][col-1] == 0 \
-                        and self.board[row  ][col  ] == color_id \
-                        and self.board[row+1][col+1] == color_id \
-                        and self.board[row+2][col+2] == color_id \
-                        and self.board[row+3][col+3] == 0 \
-                        and self.board[row+1][col-1] == 0 \
-                        and self.board[row  ][col  ] == color_id \
-                        and self.board[row-1][col+1] == color_id \
-                        and self.board[row-2][col+2] == color_id \
-                        and self.board[row-3][col+3] == 0:
+                # ? ? ? ? 0 (r+3,c+3)
+                if self.inside([(r-3,c+3),(r-1,c-1),(r+1,c-1),(r+3,c+3)]) \
+                    and self.check([(r-1,c-1),(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3)], [0,a,a,a,0]) \
+                    and self.check([(r+1,c-1),(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3)], [0,a,a,a,0]):
+                    print("2")
                     count += 1
                 # (3)
-                # ? 0 ? ? ?
-                # 0 x * * 0
+                # ? 0 ? ? ?   (r-1,c)
+                # 0 x * * 0   (r,c-1), (r,c), (r,c+3)
                 # ? * ? ? ?
                 # ? * ? ? ?
-                # ? 0 ? ? ?
-                if self.in_board(row, col-1) \
-                        and self.in_board(row, col+3) \
-                        and self.in_board(row-1, col) \
-                        and self.in_board(row+3, col) \
-                        and self.board[row][col-1] == 0 \
-                        and self.board[row][col  ] == color_id \
-                        and self.board[row][col+1] == color_id \
-                        and self.board[row][col+2] == color_id \
-                        and self.board[row][col+3] == 0 \
-                        and self.board[row-1][col] == 0 \
-                        and self.board[row  ][col] == color_id \
-                        and self.board[row+1][col] == color_id \
-                        and self.board[row+2][col] == color_id \
-                        and self.board[row+3][col] == 0:
+                # ? 0 ? ? ?   (r+3, c)
+                if self.inside([(r-1,c),(r,c-1),(r,c+3),(r+3,c)]) \
+                    and self.check([(r,c-1),(r,c),(r,c+1),(r,c+2),(r,c+3)], [0,a,a,a,0]) \
+                    and self.check([(r-1,c),(r,c),(r+1,c),(r+2,c),(r+3,c)], [0,a,a,a,0]):
+                    print("3")
                     count += 1
+
                 # (4)
-                # ? ? ? 0 ? 0 ? ? ?
-                # ? ? ? ? x ? ? ? ?
-                # ? ? ? * ? * ? ? ?
-                # ? ? * ? ? ? * ? ?
-                # ? 0 ? ? ? ? ? 0 ?
-                if self.in_board(row-1, col-1) \
-                        and self.in_board(row+3, col+3) \
-                        and self.in_board(row-1, col+1) \
-                        and self.in_board(row+3, col-3) \
-                        and self.board[row-1][col-1] == 0 \
-                        and self.board[row  ][col  ] == color_id \
-                        and self.board[row+1][col+1] == color_id \
-                        and self.board[row+2][col+2] == color_id \
-                        and self.board[row+3][col+3] == 0 \
-                        and self.board[row-1][col+1] == 0 \
-                        and self.board[row  ][col  ] == color_id \
-                        and self.board[row+1][col-1] == color_id \
-                        and self.board[row+2][col-2] == color_id \
-                        and self.board[row+3][col-3] == 0:
+                #  ? ? 0 ? 0 ? ?   (r-1,c-1), (r-1,c+1)
+                #  ? ? ? x ? ? ?   (r,c)
+                #  ? ? * ? * ? ?
+                #  ? * ? ? ? * ?
+                #  0 ? ? ? ? ? 0   (r+3,c-3), (r+3,c+3)
+                if self.inside([(r-1,c-1),(r-1,c+1),(r+3,c-3),(r+3,c+3)]) \
+                    and self.check([(r-1,c-1),(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3)], [0,a,a,a,0])\
+                    and self.check([(r-1,c+1),(r,c),(r+1,c-1),(r+2,c-2),(r+3,c-3)], [0,a,a,a,0]):
+                    print("4, r=%d, c=%d" %(r,c))
                     count += 1
+
                 # (5)
-                # ? ? ? 0 ?
-                # 0 * * x 0
+                # ? ? ? 0 ?  (r-1,c)
+                # 0 * * x 0  (r,c-3),(r,c),(r,c+1)
                 # ? ? ? * ?
                 # ? ? ? * ?
-                # ? ? ? 0 ?
-                if self.in_board(row, col+1) \
-                        and self.in_board(row, col-3) \
-                        and self.in_board(row-1, col) \
-                        and self.in_board(row+3, col) \
-                        and self.board[row][col+1] == 0 \
-                        and self.board[row][col  ] == color_id \
-                        and self.board[row][col-1] == color_id \
-                        and self.board[row][col-2] == color_id \
-                        and self.board[row][col-3] == 0 \
-                        and self.board[row-1][col] == 0 \
-                        and self.board[row  ][col] == color_id \
-                        and self.board[row+1][col] == color_id \
-                        and self.board[row+2][col] == color_id \
-                        and self.board[row+3][col] == 0:
+                # ? ? ? 0 ?  (r+3,c)
+                if self.inside([(r-1,c),(r,c-3),(r,c+1),(r+3,c)]) \
+                    and self.check([(r,c+1),(r,c),(r,c-1),(r,c-2),(r,c-3)], [0,a,a,a,0])\
+                    and self.check([(r-1,c),(r,c),(r+1,c),(r+2,c),(r+3,c)], [0,a,a,a,0]):
+                    print("5")
                     count += 1
+
                 #(6)
-                # 0 ? ? ? ?    (row-3, col-3)
+                # 0 ? ? ? ?    (r-3, c-3)
                 # ? * ? ? ?
                 # ? ? * ? 0
-                # ? ? ? x ?    (row, col)
-                # ? ? * ? 0    (row+1, col+1)
+                # ? ? ? x ?    (r, c)
+                # ? ? * ? 0    (r+1, c+1)
                 # ? * ? ? ?
-                # 0 ? ? ? ?    (row+3, col-3)
-                if self.in_board(row-1, col+1) \
-                        and self.in_board(row+3, col-3) \
-                        and self.in_board(row+1, col+1) \
-                        and self.in_board(row-3, col-3) \
-                        and self.board[row-1][col+1] == 0 \
-                        and self.board[row  ][col  ] == color_id \
-                        and self.board[row+1][col-1] == color_id \
-                        and self.board[row+2][col-2] == color_id \
-                        and self.board[row+3][col-3] == 0 \
-                        and self.board[row+1][col+1] == 0 \
-                        and self.board[row  ][col  ] == color_id \
-                        and self.board[row-1][col-1] == color_id \
-                        and self.board[row-2][col-2] == color_id \
-                        and self.board[row-3][col-3] == 0:
+                # 0 ? ? ? ?    (r+3, c-3)
+                if self.inside([(r-3,c-3),(r+1,c+1),(r+3,c-3)]) \
+                    and self.check([(r-1,c+1),(r,c),(r+1,c-1),(r+2,c-2),(r+3,c-3)],[0,a,a,a,0])\
+                    and self.check([(r+1,c+1),(r,c),(r-1,c-1),(r-2,c-2),(r-3,c-3)],[0,a,a,a,0]):
+                    print("6")
                     count += 1
+
                 # (7)
-                # ? ? ? 0 ? (row-3, col)
+                # ? ? ? 0 ? (r-3, c)
                 # ? ? ? * ?
                 # ? ? ? * ?
-                # 0 * * x 0 (row, col-3), (row,col), (row, col+1)
-                # ? ? ? 0 ? (row+1, col)
-                if          self.in_board(row, col+1) \
-                        and self.in_board(row, col-3) \
-                        and self.in_board(row+1, col) \
-                        and self.in_board(row-3, col) \
-                        and self.board[row][col+1] == 0 \
-                        and self.board[row][col  ] == color_id \
-                        and self.board[row][col-1] == color_id \
-                        and self.board[row][col-2] == color_id \
-                        and self.board[row][col-3] == 0 \
-                        and self.board[row+1][col] == 0 \
-                        and self.board[row  ][col] == color_id \
-                        and self.board[row-1][col] == color_id \
-                        and self.board[row-2][col] == color_id \
-                        and self.board[row-3][col] == 0:
+                # 0 * * x 0 (r, c-3), (r,c), (r, c+1)
+                # ? ? ? 0 ? (r+1, c)
+                if self.inside([(r-3,c),(r,c-3),(r,c+1),(r+1,c)]) \
+                    and self.check([(r,c+1),(r,c),(r,c-1),(r,c-2),(r,c-3)],[0,a,a,a,0]) \
+                    and self.check([(r+1,c),(r,c),(r-1,c),(r-2,c),(r-3,c)],[0,a,a,a,0]):
+                    print("7")
                     count += 1
 
                 # (8)
-                # 0 ? ? ? ? ? 0 (row-3, col-3), (row-3, col+3_
+                # 0 ? ? ? ? ? 0 (r-3, c-3), (r-3, c+3)
                 # ? * ? ? ? * ?
                 # ? ? * ? * ? ?
-                # ? ? ? x ? ? ?  (row, col)
-                # ? ? 0 ? 0 ? ? (row+1, col-1), (row+1, col+1)
-                if          self.in_board(row+1, col-1) \
-                        and self.in_board(row-3, col+3) \
-                        and self.in_board(row+1, col+1) \
-                        and self.in_board(row-3, col-3) \
-                        and self.board[row+1][col-1] == 0 \
-                        and self.board[row  ][col  ] == color_id \
-                        and self.board[row-1][col+1] == color_id \
-                        and self.board[row-2][col+2] == color_id \
-                        and self.board[row-3][col+3] == 0 \
-                        and self.board[row+1][col+1] == 0 \
-                        and self.board[row  ][col  ] == color_id \
-                        and self.board[row-1][col-1] == color_id \
-                        and self.board[row-2][col-2] == color_id \
-                        and self.board[row-3][col-3] == 0:
+                # ? ? ? x ? ? ?  (r, c)
+                # ? ? 0 ? 0 ? ? (r+1, c-1), (r+1, c+1)
+                if self.inside([(r-3,c-3),(r-3,c+3),(r+1,c-1),(r+1,c+1)]) \
+                    and self.check([(r+1,c-1),(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3)], [0,a,a,a,0]) \
+                    and self.check([(r+1,c+1),(r,c),(r-1,c-1),(r-2,c-2),(r-3,c-3)], [0,a,a,a,0]):
+                    print("8")
                     count += 1
 
                 # (9)
-                # ? ? 0 ? ?   (row-2, col)
+                # ? ? 0 ? ?   (r-2, c)
                 # ? ? * ? ?
-                # 0 * x * 0   (row, col-2), (row, col), (row, col+2)
+                # 0 * x * 0   (r, c-2), (r, c), (r, c+2)
                 # ? ? * ? ?
-                # ? ? 0 ? ?   (row+2, col)
-                if self.inside([(row-2, col), (row+2, col), (row, col-2), (row, col+2)]) \
-                        and self.check([(row-2,col), (row-1,col), (row,col), (row+1,col), (row+2,col)], [0,color_id,color_id,color_id,0]) \
-                        and self.check([(row,col-2), (row,col-1), (row,col), (row,col+1), (row,col+2)], [0,color_id,color_id,color_id,0]):
+                # ? ? 0 ? ?   (r+2, c)
+                if self.inside([(r-2, c), (r+2, c), (r, c-2), (r, c+2)]) \
+                        and self.check([(r-2,c), (r-1,c), (r,c), (r+1,c), (r+2,c)], [0,a,a,a,0]) \
+                        and self.check([(r,c-2), (r,c-1), (r,c), (r,c+1), (r,c+2)], [0,a,a,a,0]):
+                    print("9")
                     count += 1
 
                 # (10)
-                # 0 ? ? ? 0    (row-2, col-2), (row-2, col+2)
+                # 0 ? ? ? 0    (r-2, c-2), (r-2, c+2)
                 # ? * ? * ?
-                # ? ? x ? ?    (row, col)
+                # ? ? x ? ?    (r, c)
                 # ? * ? * ?
-                # 0 ? ? ? 0    (row+2, col-2), (row+2, col+2)
-                if self.inside([(row-2, col-2), (row-2, col+2), (row+2, col-2), (row+2, col+2)]) \
-                    and self.check([(row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2)], [0,color_id,color_id,color_id,0]) \
-                    and self.check([(row+2,col-2), (row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2)], [0,color_id,color_id,color_id,0]):
+                # 0 ? ? ? 0    (r+2, c-2), (r+2, c+2)
+                if self.inside([(r-2, c-2), (r-2, c+2), (r+2, c-2), (r+2, c+2)]) \
+                    and self.check([(r-2,c-2), (r-1,c-1), (r,c), (r+1,c+1), (r+2,c+2)], [0,a,a,a,0]) \
+                    and self.check([(r+2,c-2), (r+1,c-1), (r,c), (r-1,c+1), (r-2,c+2)], [0,a,a,a,0]):
+                    print("10")
                     count += 1
 
                 # (11)
-                # ? ? ? ? 0 ?   (row-1, col+1)
-                # ? 0 * x * 0   (row, col-2), (row,col), (row, col+2)
+                # ? ? ? ? 0 ?   (r-1, c+1)
+                # ? 0 * x * 0   (r, c-2), (r,c), (r, c+2)
                 # ? ? * ? ? ?
                 # ? * ? ? ? ?
-                # 0 ? ? ? ? ?   (row+3,col-3)
-                if self.inside([(row-1,col+1), (row,col+2), (row+3,col-3)]) \
-                    and self.check([(row+3,col-3),(row+2,col-2),(row+1,col-1),(row,col),(row-1,col+1)], [0,color_id,color_id,color_id,0]) \
-                    and self.check([(row,col-2),(row,col-1),(row,col),(row,col+1),(row,col+2)], [0,color_id,color_id,color_id,0]):
+                # 0 ? ? ? ? ?   (r+3,c-3)
+                if self.inside([(r-1,c+1), (r,c+2), (r+3,c-3)]) \
+                    and self.check([(r+3,c-3),(r+2,c-2),(r+1,c-1),(r,c),(r-1,c+1)], [0,a,a,a,0]) \
+                    and self.check([(r,c-2),(r,c-1),(r,c),(r,c+1),(r,c+2)], [0,a,a,a,0]):
+                    print("11")
                     count += 1
 
                 # (12)
-                # ? 0 ? ? ? ?    (row-2,col-2)
+                # ? 0 ? ? ? ?    (r-2,c-2)
                 # ? ? * ? ? ?
-                # 0 * * x 0 ?    (row, col-3) (row,col) (row, col+1)
+                # 0 * * x 0 ?    (r, c-3) (r,c) (r, c+1)
                 # ? ? ? ? * ?
-                # ? ? ? ? ? 0    (row+2, col+2)
-                if self.inside([(row-2,col-2), (row+2,col+2), (row,col-3)]) \
-                    and self.check([(row,col-3), (row,col-2), (row,col-1), (row,col), (row,col+1)], [0, color_id, color_id, color_id, 0]) \
-                    and self.check([(row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2)], [0, color_id, color_id, color_id, 0]):
+                # ? ? ? ? ? 0    (r+2, c+2)
+                if self.inside([(r-2,c-2), (r+2,c+2), (r,c-3)]) \
+                    and self.check([(r,c-3), (r,c-2), (r,c-1), (r,c), (r,c+1)], [0, a, a, a, 0]) \
+                    and self.check([(r-2,c-2), (r-1,c-1), (r,c), (r+1,c+1), (r+2,c+2)], [0, a, a, a, 0]):
+                    print("12")
                     count += 1
                 # (13)
-                # 0 ? ? ? ?     (row-3, col-3)
-                # ? * ? 0 ?     (row-2,col)
+                # 0 ? ? ? ?     (r-3, c-3)
+                # ? * ? 0 ?     (r-2,c)
                 # ? ? * * ?
-                # ? ? ? x ?     (row, col)
-                # ? ? ? * 0     (row+1, col+1)
-                # ? ? ? 0 ?     (row+2, col)
-                #    and self.check([(), (), (), (), ()], [0, color_id, color_id, color_id, 0])
-                if self.inside([(row-3,col-3), (row+1,col+1), (row+2,col)]) \
-                    and self.check([(row-3,col-3), (row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1)], [0, color_id, color_id, color_id, 0])\
-                    and self.check([(row-2,col), (row-1,col), (row,col), (row+1,col), (row+2,col)], [0, color_id, color_id, color_id, 0]):
+                # ? ? ? x ?     (r, c)
+                # ? ? ? * 0     (r+1, c+1)
+                # ? ? ? 0 ?     (r+2, c)
+                #    and self.check([(), (), (), (), ()], [0, a, a, a, 0])
+                if self.inside([(r-3,c-3), (r+1,c+1), (r+2,c)]) \
+                    and self.check([(r-3,c-3), (r-2,c-2), (r-1,c-1), (r,c), (r+1,c+1)], [0, a, a, a, 0])\
+                    and self.check([(r-2,c), (r-1,c), (r,c), (r+1,c), (r+2,c)], [0, a, a, a, 0]):
+                    print("13")
                     count += 1
 
                 # (14)
-                # ? ? 0 ? ?    (row-3, col)
-                # ? ? * ? 0    (row-2,col+2)
+                # ? ? 0 ? ?    (r-3, c)
+                # ? ? * ? 0    (r-2,c+2)
                 # ? ? * * ?
-                # ? ? x ? ?    (row, col)
+                # ? ? x ? ?    (r, c)
                 # ? * 0 ? ?
-                # 0 ? ? ? ?    (row+2, col-2)
-                if self.inside([(row-3,col), (row-2,col+2), (row+2,col-2)]) \
-                    and self.check([(row+2,col-2), (row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2)], [0, color_id, color_id, color_id, 0])\
-                    and self.check([(row-3,col), (row-2,col), (row-1,col), (row,col), (row+1,col)], [0, color_id, color_id, color_id, 0]):
+                # 0 ? ? ? ?    (r+2, c-2)
+                if self.inside([(r-3,c), (r-2,c+2), (r+2,c-2)]) \
+                    and self.check([(r+2,c-2), (r+1,c-1), (r,c), (r-1,c+1), (r-2,c+2)], [0, a, a, a, 0])\
+                    and self.check([(r-3,c), (r-2,c), (r-1,c), (r,c), (r+1,c)], [0, a, a, a, 0]):
+                    print("14")
                     count += 1
                 # (15)
-                # ? ? ? ? ? 0  (row-3,col+3)
+                # ? ? ? ? ? 0  (r-3,c+3)
                 # ? ? ? ? * ?
                 # ? ? ? * ? ?
-                # 0 * x * 0 ?   (row, col-2) (row,col)
-                # ? 0 ? ? ? ?   (row+1, col-1)
-                if self.inside([(row+1,col-1), (row,col-2), (row-3,col+3)]) \
-                    and self.check([(row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2), (row-3,col+3)], [0, color_id, color_id, color_id, 0]) \
-                    and self.check([(row,col-2), (row,col-1), (row,col), (row,col+1), (row,col+2)], [0, color_id, color_id, color_id, 0]):
+                # 0 * x * 0 ?   (r, c-2) (r,c)
+                # ? 0 ? ? ? ?   (r+1, c-1)
+                if self.inside([(r+1,c-1), (r,c-2), (r-3,c+3)]) \
+                    and self.check([(r+1,c-1), (r,c), (r-1,c+1), (r-2,c+2), (r-3,c+3)], [0, a, a, a, 0]) \
+                    and self.check([(r,c-2), (r,c-1), (r,c), (r,c+1), (r,c+2)], [0, a, a, a, 0]):
+                    prin("15")
                     count += 1
                 # (16)
-                # 0 ? ? ? ? ?    (row-2,col-2)
+                # 0 ? ? ? ? ?    (r-2,c-2)
                 # ? * ? ? ? ?
-                # ? 0 x * * 0    (row,col), (row, col+3)
+                # ? 0 x * * 0    (r,c), (r, c+3)
                 # ? ? ? * ? ?
-                # ? ? ? ? 0 ?    (row+2,col+2)
-                if self.inside([(row-2,col-2), (row,col+3), (row+2,col+2)]) \
-                    and self.check([(row-2,col-2), (row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2)], [0, color_id, color_id, color_id, 0]) \
-                    and self.check([(row,col-1), (row,col), (row,col+1), (row,col+2), (row,col+3)], [0, color_id, color_id, color_id, 0]):
+                # ? ? ? ? 0 ?    (r+2,c+2)
+                if self.inside([(r-2,c-2), (r,c+3), (r+2,c+2)]) \
+                    and self.check([(r-2,c-2), (r-1,c-1), (r,c), (r+1,c+1), (r+2,c+2)], [0, a, a, a, 0]) \
+                    and self.check([(r,c-1), (r,c), (r,c+1), (r,c+2), (r,c+3)], [0, a, a, a, 0]):
+                    print("16")
                     count += 1
 
                 # (17)
-                # ? 0 ? ? ? (row-2,col)
-                # 0 * ? ? ?  (row-1,col-1)
-                # ? x ? ? ? (row,col)
+                # ? 0 ? ? ? (r-2,c)
+                # 0 * ? ? ?  (r-1,c-1)
+                # ? x ? ? ? (r,c)
                 # ? * * ? ?
                 # ? 0 ? * ?
-                # ? ? ? ? 0 (row+3,col+3)
-                if self.inside([(row-2,col), (row-1,col-1), (row+3,col+3)])\
-                    and self.check([(row-2,col), (row-1,col), (row,col), (row+1,col), (row+2,col)], [0, color_id, color_id, color_id, 0])\
-                    and self.check([(row-1,col-1), (row,col), (row+1,col+1), (row+2,col+2), (row+3,col+3)], [0, color_id, color_id, color_id, 0]):
+                # ? ? ? ? 0 (r+3,c+3)
+                if self.inside([(r-2,c), (r-1,c-1), (r+3,c+3)])\
+                    and self.check([(r-2,c), (r-1,c), (r,c), (r+1,c), (r+2,c)], [0, a, a, a, 0])\
+                    and self.check([(r-1,c-1), (r,c), (r+1,c+1), (r+2,c+2), (r+3,c+3)], [0, a, a, a, 0]):
+                    print("17")
                     count += 1
                 # (18)
-                # ? ? ? ? 0 ?    (row-2, col+2)
+                # ? ? ? ? 0 ?    (r-2, c+2)
                 # ? ? 0 * ? ?
-                # ? ? x ? ? ?    (row, col)
+                # ? ? x ? ? ?    (r, c)
                 # ? * * ? ? ?
-                # 0 ? * ? ? ?    (row+2, col-2)
-                # ? ? 0 ? ? ?    (row+3,col)
-                if self.inside([(row-2,col+2), (row+2,col-2), (row+3,col)]) \
-                    and self.check([(row+2,col-2), (row+1,col-1), (row,col), (row-1,col+1), (row-2,col+2)], [0, color_id, color_id, color_id, 0]) \
-                    and self.check([(row-1,col), (row,col), (row+1,col), (row+2,col), (row+3,col)], [0, color_id, color_id, color_id, 0]):
+                # 0 ? * ? ? ?    (r+2, c-2)
+                # ? ? 0 ? ? ?    (r+3,c)
+                if self.inside([(r-2,c+2), (r+2,c-2), (r+3,c)]) \
+                    and self.check([(r+2,c-2), (r+1,c-1), (r,c), (r-1,c+1), (r-2,c+2)], [0, a, a, a, 0]) \
+                    and self.check([(r-1,c), (r,c), (r+1,c), (r+2,c), (r+3,c)], [0, a, a, a, 0]):
+                    print("18")
                     count += 1
         return count
 
@@ -1587,7 +1011,7 @@ class wuziqi:
         self.display_update()
 
         self.board[r][c] = self.player_color
-        if self.terminal_state() == self.player_color:
+        if self.game_over() == self.player_color:
             pygame.display.set_caption(u"五子棋（Gomoku）: player win!")
             self.end_game_flag = True
             return
@@ -1609,7 +1033,7 @@ class wuziqi:
         self.button_group.add(new_circle)
         pygame.display.update()
 
-        if self.terminal_state() == self.computer_color:
+        if self.game_over() == self.computer_color:
             pygame.display.set_caption(u"五子棋（Gomoku）: computer win!")
             self.end_game_flag = True
 
