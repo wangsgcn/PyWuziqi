@@ -3,6 +3,7 @@ import mycolors as mc
 import pygame
 import pygame.gfxdraw
 
+
 class vline(pygame.sprite.Sprite):
     def __init__(self, color=mc.black, width=3, height=None, x=None, y=None):
         super().__init__()
@@ -12,6 +13,7 @@ class vline(pygame.sprite.Sprite):
         self.rect.y = y
         self.image.fill(color)
 
+
 class hline(pygame.sprite.Sprite):
     def __init__(self, color=mc.black, width=None, height=3, x=None, y=None):
         super().__init__()
@@ -20,6 +22,7 @@ class hline(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
         self.image.fill(color)
+
 
 class circle(pygame.sprite.Sprite):
     def __init__(self, color=mc.blue, width=32, height=32):
@@ -52,6 +55,7 @@ class circle(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+
 class board_xy:
     def __init__(self, nrow=15, ncol=15, board_width=800, board_height=800, x_margin=100, y_margin=100):
         self.nrow = nrow
@@ -60,10 +64,10 @@ class board_xy:
         self.board_height = board_height
         self.X = [[0 for i in range(self.ncol)] for j in range(self.nrow)]
         self.Y = [[0 for i in range(self.ncol)] for j in range(self.nrow)]
-        self.x_interval = (board_width  - 2 * x_margin) // (ncol - 1)
+        self.x_interval = (board_width - 2 * x_margin) // (ncol - 1)
         self.y_interval = (board_height - 2 * y_margin) // (nrow - 1)
-        self.x_margin = (self.board_width  - self.x_interval * (ncol-1)) // 2
-        self.y_margin = (self.board_height - self.y_interval * (nrow-1)) // 2
+        self.x_margin = (self.board_width - self.x_interval * (ncol - 1)) // 2
+        self.y_margin = (self.board_height - self.y_interval * (nrow - 1)) // 2
         x0 = x_margin
         y0 = y_margin
 
