@@ -1,108 +1,9 @@
 # Developer Shugong Wang (wangsgcn@gmail.com)
 
-import time
-import math
 import pygame
-import pygame.gfxdraw
-# import numpy as np
 import mycolors as mc
 import random
-
-
-class board_xy:
-    def __init__(self, nrow=15, ncol=15, board_width=800, board_height=800, x_margin=100, y_margin=100):
-        self.nrow = nrow
-        self.ncol = ncol
-        self.board_width = board_width
-        self.board_height = board_height
-        self.X = [[0 for i in range(self.ncol)] for j in range(self.nrow)]
-        self.Y = [[0 for i in range(self.ncol)] for j in range(self.nrow)]
-        self.x_interval = (board_width  - 2 * x_margin) // (ncol - 1)
-        self.y_interval = (board_height - 2 * y_margin) // (nrow - 1)
-        self.x_margin = (self.board_width  - self.x_interval * (ncol-1)) // 2
-        self.y_margin = (self.board_height - self.y_interval * (nrow-1)) // 2
-        x0 = x_margin
-        y0 = y_margin
-
-        for row in range(nrow):
-            y = y0 + row * self.y_interval
-            for col in range(ncol):
-                x = x0 + col * self.x_interval
-                self.X[row][col] = x
-                self.Y[row][col] = y
-
-    def get_xy(self, mouse_x=None, mouse_y=None, button_radius=16):
-        for row in range(self.nrow):
-            for col in range(self.ncol):
-                x = self.X[row][col]
-                y = self.Y[row][col]
-
-                d = math.sqrt((mouse_x - x) * (mouse_x - x) + (mouse_y - y) * (mouse_y - y))
-                #
-                if d <= 0.5 * button_radius:
-                    return x, y
-
-        return -1, -1
-
-    def get_row_col(self, x, y):
-        col = (x - self.x_margin) // self.x_interval
-        row = (y - self.y_margin) // self.y_interval
-        return int(row), int(col)
-
-    def row_col_to_xy(self, row, col):
-        return (self.X[row][col], self.Y[row][col])
-
-
-class Circle(pygame.sprite.Sprite):
-    def __init__(self, color=mc.blue, width=32, height=32):
-        # Call the parent class (Sprite) constructor
-        super().__init__()
-
-        # set sprite attributes
-        self.width = width
-        self.height = height
-        self.color = color
-        self.radius = width // 2 - 2
-
-        # Create an image of the block, and fill it with a color.
-        # This could also be an image loaded from the disk.
-        self.image = pygame.Surface((width, height), pygame.SRCALPHA)
-
-        # Fetch the rectangle object that has the dimensions of the image
-        # Update the position of this object by setting the values of rect.x and rect.y
-        self.rect = self.image.get_rect()
-
-        # draw circle
-        xc = self.width // 2
-        yc = self.height // 2
-        r = self.radius
-        pygame.draw.circle(self.image, self.color, (xc, yc), r)
-        pygame.gfxdraw.aacircle(self.image, xc, yc, r, self.color)
-        pygame.gfxdraw.filled_circle(self.image, xc, yc, r, self.color)
-
-    def set_position(self, x, y):
-        self.rect.x = x
-        self.rect.y = y
-
-
-class vline(pygame.sprite.Sprite):
-    def __init__(self, color=mc.black, width=3, height=None, x=None, y=None):
-        super().__init__()
-        self.image = pygame.Surface((width, height))
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        self.image.fill(color)
-
-
-class hline(pygame.sprite.Sprite):
-    def __init__(self, color=mc.black, width=None, height=3, x=None, y=None):
-        super().__init__()
-        self.image = pygame.Surface((width, height))
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        self.image.fill(color)
+from ui import board_xy, circle, vline, hline
 
 
 class wuziqi:
@@ -1049,19 +950,11 @@ class wuziqi:
         computer_closed_three   = self.count_closed_three_greedy(self.computer_color)
         computer_open_two       = self.count_open_two_greedy(self.computer_color)
         computer_closed_two     = self.count_closed_two_greedy(self.computer_color)
-        computer_double_three = 0
-        computer_double_four = 0
-        if computer_open_three >= 2:
-            computer_double_three = 1
-        if computer_closed_four >=2:
-            computer_double_four = 1
         self.board[row][col] = 0
-        #print("computer_closed_two: %d"%computer_closed_two)
 
         offend_score   = self.open_two_points * computer_open_two + self.close_two_points * computer_closed_two \
                          + self.open_three_points * computer_open_three + self.close_three_points * computer_closed_three \
                          + self.open_four_points * computer_open_four + self.closed_four_points * computer_closed_four \
-                         + self.double_three_points * computer_double_three + self.open_four_points * computer_double_four \
                          + self.connected_five_points * computer_connected_five
 
         # evaluate computer defense
@@ -1073,18 +966,12 @@ class wuziqi:
         player_closed_three    = self.count_closed_three_greedy(self.player_color)
         player_open_two        = self.count_open_two_greedy(self.player_color)
         player_closed_two      = self.count_closed_two_greedy(self.player_color)
-        player_double_three = 0
-        player_double_four = 0
-        if player_open_three >= 2:
-            player_double_three = 1
-        if player_closed_four >= 2:
-            player_double_four =1
         self.board[row][col] = 0
         defend_score = self.open_two_points * player_open_two + self.close_two_points * player_closed_two \
                        + (self.open_three_points * player_open_three + self.close_three_points * player_closed_three \
                        + self.open_four_points * player_open_four + self.closed_four_points * player_closed_four \
-                       + self.connected_five_points * player_connected_five + self.double_three_points*player_double_three\
-                       + self.open_four_points*player_double_four) * 2
+                       + self.connected_five_points * player_connected_five)*1
+
         return offend_score + defend_score
 
     def get_move_wiki(self):
@@ -1679,7 +1566,7 @@ class wuziqi:
     def show_possible_moves(self, possible_moves):
         for row, col in possible_moves:
             x, y = self.get_xy(row, col)
-            new_circle = Circle(color=mc.blue, width=32, height=32)
+            new_circle = circle(color=mc.blue, width=32, height=32)
             new_circle.set_position(x - new_circle.width // 2, y - new_circle.height // 2)
             self.button_group.add(new_circle)
         pygame.display.update()
@@ -1692,7 +1579,7 @@ class wuziqi:
         if x == -1 and y == -1 and self.board[r][c] == 0:
             return
 
-        new_circle = Circle(color=mc.black, width=32, height=32)
+        new_circle = circle(color=mc.black, width=32, height=32)
         new_circle.set_position(x - new_circle.width // 2, y - new_circle.height // 2)
         self.button_group.add(new_circle)
         #pygame.display.update()
@@ -1717,7 +1604,7 @@ class wuziqi:
         # computer
         self.board[move_row][move_col] = self.computer_color
         move_x, move_y = self.get_xy(move_row, move_col)
-        new_circle = Circle(color=mc.white, width=32, height=32)
+        new_circle = circle(color=mc.white, width=32, height=32)
         new_circle.set_position(move_x - new_circle.width // 2, move_y - new_circle.height // 2)
         self.button_group.add(new_circle)
         pygame.display.update()
