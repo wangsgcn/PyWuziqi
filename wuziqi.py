@@ -199,20 +199,20 @@ class wuziqi:
                 if self.board[r][c] == a:
                     continue
                 # horizontal direction
-                if self.inside([(r,c+4)]) and (self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4)], [b,a,a,a,0,0])\
-                                            or self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4)], [0,0,a,a,a,b])):
+                if self.inside([(r,c+4)]) and (self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4),(r,c+5)], [b,a,a,a,0,0])\
+                                            or self.check([(r,c),(r,c+1),(r,c+2),(r,c+3),(r,c+4),(r,c+5)], [0,0,a,a,a,b])):
                     count += 1
                 # vertical direction
-                if self.inside([(r+4,c)]) and (self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c)], [b,a,a,a,0,0])\
-                                            or self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c)], [0,0,a,a,a,b])):
+                if self.inside([(r+4,c)]) and (self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c),(r+5,c)], [b,a,a,a,0,0])\
+                                            or self.check([(r,c),(r+1,c),(r+2,c),(r+3,c),(r+4,c),(r+5,c)], [0,0,a,a,a,b])):
                     count += 1
                 # upper right diagonal direction
-                if self.inside([(r-4,c+4)]) and (self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4)], [b,a,a,a,0,0])\
-                                             or self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4)], [0,0,a,a,a,b])):
+                if self.inside([(r-4,c+4)]) and (self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4),(r-5,c+5)], [b,a,a,a,0,0])\
+                                              or self.check([(r,c),(r-1,c+1),(r-2,c+2),(r-3,c+3),(r-4,c+4),(r-5,c+5)], [0,0,a,a,a,b])):
                     count += 1
                 # lower right diagonal direction
-                if self.inside([(r+4,c+4)]) and (self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4)], [b,a,a,a,0,0])\
-                                              or self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4)], [0,0,a,a,a,b])):
+                if self.inside([(r+4,c+4)]) and (self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4),(r+5,c+5)], [b,a,a,a,0,0])\
+                                              or self.check([(r,c),(r+1,c+1),(r+2,c+2),(r+3,c+3),(r+4,c+4),(r+5,c+5)], [0,0,a,a,a,b])):
                     count += 1
         return count
 
@@ -1021,6 +1021,7 @@ class wuziqi:
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_WAIT)
         # computer move
         #move_row, move_col = self.get_move_wiki()
+
         move_row, move_col = self.get_move_greedy()
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW )
         self.ready_for_human_move_flag = True
